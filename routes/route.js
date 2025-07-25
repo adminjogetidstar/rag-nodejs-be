@@ -4,14 +4,15 @@ import collectionRouter from "./collection.route.js";
 import askRouter from "./ask.route.js";
 import authRouter from "./auth.route.js"
 import whapifyRouter from "./whapify.route.js"
-import googleApiKeyAuth from "../middlewares/google_api_key_auth.js";
+import jwtApiKeyAuth from "../middlewares/jwt_api_key_auth.js";
+import jwtAuth from "../middlewares/jwt_auth.js";
 
 const router = express.Router();
 
 router.use("/auth", authRouter)
-router.use("/ask", googleApiKeyAuth, askRouter);
-router.use("/upload", googleApiKeyAuth, uploadRouter);
-router.use("/collections", googleApiKeyAuth, collectionRouter);
+router.use("/ask", jwtApiKeyAuth, askRouter);
+router.use("/upload", jwtApiKeyAuth, uploadRouter);
+router.use("/collections", jwtApiKeyAuth, collectionRouter);
 router.use("/whapify", whapifyRouter);
 
 export default router;
