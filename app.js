@@ -10,6 +10,7 @@ dotenv.config();
 const app = express();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 //session
 app.use(session({
@@ -46,5 +47,5 @@ app.use("/", router);
 
 app.listen(PORT, () => {
   console.log("RAG API is running on port:", PORT);
-  whatsappBot();
+  // whatsappBot();
 });

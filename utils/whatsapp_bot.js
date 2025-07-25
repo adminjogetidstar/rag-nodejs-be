@@ -1,14 +1,9 @@
-import dotenv from "dotenv";
 import pkg from 'whatsapp-web.js';
 const { Client, LocalAuth } = pkg
 import qrcode from 'qrcode-terminal';
-import fetch from "node-fetch";
-
-dotenv.config({ path: "../.env" });
+import askHandler from "./ask_handler.js";
 
 const whatsappBot = async () => {
-  const baseUrl = "http://localhost:3000";
-
   //Inisialisasi Client whatsapp-web.js
   const client = new Client({
     authStrategy: new LocalAuth()
@@ -36,31 +31,16 @@ const whatsappBot = async () => {
     if (!text) return;
 
     try {
-      const response = await fetch(baseUrl + "/ask", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": process.env.API_KEY,
-        },
-        body: JSON.stringify({ question: text, userId }),
-      });
-
-      const json = await response.json();
-
-      if (!json.success) {
-        return message.reply("Gagal menjawab pertanyaan.");
-      }
-
-      const answer = json.data.answer;
+      const result = await askHandler(text, userId);
 
       // Batasi panjang pesan
-      if (answer.length > 4000) {
+      if (result.answer.length > 4000) {
         return message.reply(answer.slice(0, 3900) + "\n\n(dipotong)");
       }
 
-      message.reply(answer);
+      message.reply(result.answer);
     } catch (err) {
-      console.error("Error:", err);
+      console.error("Error whatsappBot:", err);
       message.reply("Terjadi kesalahan. Coba lagi nanti.");
     }
   });
