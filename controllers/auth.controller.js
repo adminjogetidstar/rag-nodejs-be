@@ -13,31 +13,42 @@ const getJwtFromGoogle = async (req, res) => {
     const { idToken } = req.body;
 
     try {
-    const ticket = await client.verifyIdToken({
-      idToken,
-      audience: GOOGLE_CLIENT_ID,
-    });
+        const ticket = await client.verifyIdToken({
+        idToken,
+        audience: GOOGLE_CLIENT_ID,
+        });
 
-    const payload = ticket.getPayload();
-    const { sub, email, name } = payload;
+        const payload = ticket.getPayload();
+        const { sub, email, name } = payload;
 
-    const token = jwt.sign(
-      { userId: sub, email, name },
-      JWT_SECRET,
-      { expiresIn: '2h' }
-    );
+        const token = jwt.sign(
+            { userId: sub, email, name },
+            JWT_SECRET,
+            { expiresIn: '2h' }
+        );
 
-    res.json({
-        success: true,
-        message: "Generate JWT success",
-        data: {
-            token
-        }
-    });
-  } catch (err) {
-    console.error('Error during generate JWT:', err);
-    res.status(401).json({ message: 'Invalid Google ID Token' });
-  }
+        res.json({
+            success: true,
+            message: "Generate JWT success",
+            data: {
+                token
+            }
+        });
+    } catch (err) {
+        console.error("Error during generate JWT:", err);
+        res.status(401).json({
+            succes: false,
+            message: "Invalid Google ID Token"
+        });
+    }
 }
 
-export { getJwtFromGoogle };
+const getUserInfo = async (req, res) => {
+    res.json({
+        success: true,
+        message: "Get user info success",
+        data: req.user
+    })
+}
+
+export { getJwtFromGoogle, getUserInfo };
