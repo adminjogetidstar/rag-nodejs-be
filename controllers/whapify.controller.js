@@ -18,29 +18,28 @@ const webhookHandler = async (req, res) => {
     if (secret && secret === WEBHOOK_SECRET && body.type === "whatsapp") {
         const question = body.data.message;
         const userId = body.data.phone;
-        console.log(question)
-        console.log(userId);
+
+        const result = await askHandler(question, userId);
+
+        const formData = new FormData();
+        formData.append("secret", API_KEY);
+        formData.append("account", ID);
+        formData.append("recipient", userId);
+        formData.append("message", result.answer);
+        formData.append("type", "text");
 
         try {
-            const result = await askHandler(question, userId);
             const url = `${BASE_URL}/send/whatsapp`;
-
-            const formData = new FormData();
-            formData.append("secret", API_KEY);
-            formData.append("account", ID);
-            formData.append("recipient", userId);
-            formData.append("message", result.answer);
-            formData.append("type", "text");
 
             const response = await axios.post(url, formData, { headers: formData.getHeaders() });
 
             return res.status(response.status).send(response.data);
         } catch (err) {
             console.error("Error Whapify:", err);
-            return res.status(500).send("Something went wrong");
+            return res.status(200).send("Something went wrong");
         }
     } else {
-        return res.status(400).send("Just receiving Whatsapp message");
+        return res.status(200).send("Just receiving Whatsapp message");
     }
 }
 
