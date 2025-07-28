@@ -14,15 +14,15 @@ const getJwtFromGoogle = async (req, res) => {
 
     try {
         const ticket = await client.verifyIdToken({
-        idToken,
-        audience: GOOGLE_CLIENT_ID,
+            idToken,
+            audience: GOOGLE_CLIENT_ID,
         });
 
         const payload = ticket.getPayload();
-        const { sub, email, name } = payload;
+        const { sub, email, name, picture, hd } = payload;
 
         const token = jwt.sign(
-            { userId: sub, email, name },
+            { userId: sub, email, name, picture, hd },
             JWT_SECRET,
             { expiresIn: '2h' }
         );
@@ -35,7 +35,7 @@ const getJwtFromGoogle = async (req, res) => {
             }
         });
     } catch (err) {
-        console.error("Error during generate JWT:", err);
+        console.error("Error during POST /auth/google:", err);
         res.status(401).json({
             succes: false,
             message: "Invalid Google ID Token"
@@ -44,11 +44,29 @@ const getJwtFromGoogle = async (req, res) => {
 }
 
 const getUserInfo = async (req, res) => {
-    res.json({
-        success: true,
-        message: "Get user info success",
-        data: req.user
-    })
+    const { userId, email, name, picture, hd, iat, exp } = req.user;
+    try {
+        res.json({
+            success: true,
+            message: "Get user info success",
+            data: {
+                userId,
+                email,
+                name,
+                picture,
+                role: hd === "idstar.co.id" ? "admin" : "user",
+                iat,
+                exp
+            },
+            // data: "masuk ges"
+        });
+    } catch (err) {
+        console.error("Error during GET /auth/user-info:", err);
+        res.status(500).json({
+            succes: false,
+            message: "Something went wrong"
+        });
+    }
 }
 
 export { getJwtFromGoogle, getUserInfo };

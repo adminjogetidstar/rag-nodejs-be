@@ -29,22 +29,22 @@ const askHandler = async (question, userId) => {
         let allMatches = [];
 
         if (userId) {
-        const history = await collection.query({
-            queryEmbeddings: [queryEmbedding],
-            where: { userId },
-            nResults: 10,
-            include: ["documents", "metadatas", "distances"],
-        });
+            const history = await collection.query({
+                queryEmbeddings: [queryEmbedding],
+                where: { userId },
+                nResults: 10,
+                include: ["documents", "metadatas", "distances"],
+            });
 
-        if (history.documents?.[0]?.length > 0) {
-            allMatches.push(
-            ...history.documents[0].map((doc, i) => ({
-                document: doc,
-                metadata: history.metadatas[0][i],
-                distance: history.distances[0][i],
-            }))
-            );
-        }
+            if (history.documents?.[0]?.length > 0) {
+                allMatches.push(
+                ...history.documents[0].map((doc, i) => ({
+                    document: doc,
+                    metadata: history.metadatas[0][i],
+                    distance: history.distances[0][i],
+                }))
+                );
+            }
         }
 
         const manual = await collection.query({
@@ -63,8 +63,8 @@ const askHandler = async (question, userId) => {
         );
 
         const combined = allMatches
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, 10);
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, 10);
 
         const context = combined.map((item) => item.document).join("\n\n");
         const sources = combined
@@ -80,26 +80,20 @@ const askHandler = async (question, userId) => {
         const answer = result.content.trim();
 
         if (!answer.toLowerCase().includes("tidak tahu")) {
-        const qaText = `Q: ${question}\nA: ${answer}`;
-        const qaEmbedding = await geminiEmbeddings.embedQuery(qaText);
+            const qaText = `Q: ${question}\nA: ${answer}`;
+            const qaEmbedding = await geminiEmbeddings.embedQuery(qaText);
 
-        await collection.add({
-            ids: [uuidv4()],
-            documents: [qaText],
-            embeddings: [qaEmbedding],
-            metadatas: [{
-            extension: "qa",
-            source: question,
-            fileName: `${Date.now()}_${question}`,
-            userId,
-            }]
-        });
-        }
-
-        const response = {
-        question,
-        answer: result.content,
-        sources,
+            await collection.add({
+                ids: [uuidv4()],
+                documents: [qaText],
+                embeddings: [qaEmbedding],
+                metadatas: [{
+                extension: "qa",
+                source: question,
+                fileName: `${Date.now()}_${question}`,
+                userId,
+                }]
+            });
         }
 
         console.log("Response generated successfully");

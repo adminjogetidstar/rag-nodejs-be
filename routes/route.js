@@ -8,11 +8,14 @@ import jwtApiKeyAuth from "../middlewares/jwt_api_key_auth.js";
 import jwtAuth from "../middlewares/jwt_auth.js";
 
 const router = express.Router();
-
+router.use((req, res, next) => {
+  console.log(`[${req.method}] ${req.path}`);
+  next();
+});
 router.use("/auth", authRouter)
-router.use("/ask", jwtApiKeyAuth, askRouter);
-router.use("/upload", jwtApiKeyAuth, uploadRouter);
-router.use("/collections", jwtApiKeyAuth, collectionRouter);
+router.use("/ask", jwtAuth, askRouter);
+router.use("/upload", jwtAuth, uploadRouter);
+router.use("/collections", jwtAuth, collectionRouter);
 router.use("/whapify", whapifyRouter);
 
 export default router;
