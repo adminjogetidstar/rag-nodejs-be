@@ -8,6 +8,7 @@ import path from "path";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { CSVLoader } from "@langchain/community/document_loaders/fs/csv";
 import ExcelJSLoader from "./exceljs_loader.js";
+import JSONLoader from "./json_loader.js";
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ const indexFile = async () => {
     ".pdf": (path) => new PDFLoader(path, { splitPages: true }),
     ".csv": (path) => new CSVLoader(path),
     ".xlsx": (path) => new ExcelJSLoader(path),
+    ".json": (path) => new JSONLoader(path)
   });
 
   const docs = await loader.load();
@@ -35,32 +37,52 @@ const indexFile = async () => {
     chunkOverlap: 100,
   });
 
-  const simplifiedDocs = [];
+  // const simplifiedDocs = [];
 
-  for (const doc of docs) {
+  // for (const doc of docs) {
+  //   const filePath = doc.metadata.source;
+  //   const fileName = path.basename(filePath);
+  //   const pageNumber = doc.metadata.loc?.pageNumber;
+  //   const ext = path.extname(fileName).replace(".", "").toLowerCase();
+
+  //   const chunks = await splitter.createDocuments([doc.pageContent]);
+
+  //   chunks.forEach((chunk, index) => {
+  //     simplifiedDocs.push({
+  //       pageContent: chunk.pageContent,
+  //       metadata: {
+  //         fileName,
+  //         page: pageNumber,
+  //         chunkIndex: index,
+  //         extension: ext,
+  //         source: pageNumber
+  //           ? `${fileName} - page ${pageNumber} - chunk ${index}`
+  //           : `${fileName} - chunk ${index}`,
+  //         userId: "default",
+  //       },
+  //     });
+  //   });
+  // }
+
+  const simplifiedDocs = docs.map((doc, index) => {
     const filePath = doc.metadata.source;
     const fileName = path.basename(filePath);
-    const pageNumber = doc.metadata.loc?.pageNumber;
     const ext = path.extname(fileName).replace(".", "").toLowerCase();
+    const pageNumber = doc.metadata.loc?.pageNumber ?? doc.metadata.rowNumber;
 
-    const chunks = await splitter.createDocuments([doc.pageContent]);
-
-    chunks.forEach((chunk, index) => {
-      simplifiedDocs.push({
-        pageContent: chunk.pageContent,
-        metadata: {
-          fileName,
-          page: pageNumber,
-          chunkIndex: index,
-          extension: ext,
-          source: pageNumber
-            ? `${fileName} - page ${pageNumber} - chunk ${index}`
-            : `${fileName} - chunk ${index}`,
-          userId: "default",
-        },
-      });
-    });
-  }
+    return {
+      pageContent: doc.pageContent,
+      metadata: {
+        fileName,
+        page: pageNumber,
+        extension: ext,
+        source: pageNumber
+          ? `${fileName} - page ${pageNumber}`
+          : `${fileName}`,
+        userId: "default",
+      },
+    };
+  });
 
   console.log(`Loaded ${simplifiedDocs.length} pages from /uploads`);
 
