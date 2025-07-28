@@ -31,7 +31,14 @@ const getJwtFromGoogle = async (req, res) => {
             success: true,
             message: "Generate JWT success",
             data: {
-                token
+                token,
+                user: {
+                    userId: sub,
+                    email,
+                    name,
+                    picture,
+                    role: hd === "idstar.co.id" ? "admin": "user"
+                },
             }
         });
     } catch (err) {
