@@ -48,10 +48,10 @@ const askHandler = async (question, userId) => {
         // }
 
         const manual = await collection.query({
-        queryEmbeddings: [queryEmbedding],
-        where: { userId: "default"},
-        nResults: 10,
-        include: ["documents", "metadatas", "distances"],
+            queryEmbeddings: [queryEmbedding],
+            where: { userId: "default"},
+            nResults: 20,
+            include: ["documents", "metadatas", "distances"],
         });
 
         allMatches.push(
@@ -64,7 +64,7 @@ const askHandler = async (question, userId) => {
 
         const combined = allMatches
             .sort((a, b) => a.distance - b.distance)
-            .slice(0, 10);
+            .slice(0, 20);
 
         const context = combined.map((item) => item.document).join("\n\n");
         const sources = combined
