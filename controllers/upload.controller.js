@@ -2,6 +2,7 @@ import multer from "multer";
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
+import indexFile from "../utils/index_file.js";
 
 dotenv.config();
 
@@ -31,9 +32,18 @@ const uploadHandler = async (req, res) => {
     }
 
     const uploadedFiles = req.files.map((file) => file.filename);
+    
+    const status = await indexFile();
+    if (status === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No documents found to index."
+      });
+    }
+
     res.json({
       success: true,
-      message: "File uploaded successfully",
+      message: "File uploaded and indexed into Chroma!",
       data: uploadedFiles
     });
   } catch (err) {
