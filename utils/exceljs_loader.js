@@ -28,13 +28,14 @@ class ExcelJSLoader {
         }
       });
 
-      sheetDocs.forEach((docText) => {
+      sheetDocs.forEach((docText, rowNumber) => {
         docs.push(
           new Document({
             pageContent: docText,
             metadata: {
               source: this.filePath,
               sheet: sheet.name,
+              rowNumber,
             },
           })
         );
