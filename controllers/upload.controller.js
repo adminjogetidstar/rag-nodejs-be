@@ -45,4 +45,48 @@ const uploadHandler = async (req, res) => {
   }
 }
 
-export { upload, uploadHandler };
+const getUploadedFiles = async (req, res) => {
+  try {
+    const dir = path.join(process.cwd(), DIR_NAME);
+
+    // Cek apakah folder ada
+    if (!fs.existsSync(dir)) {
+      return res.status(404).json({
+        success: false,
+        message: "Upload directory not found."
+      });
+    }
+
+    // Ambil daftar file
+    const files = fs.readdirSync(dir);
+
+    // Ambil query parameter pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+
+    const paginatedFiles = files.slice(startIndex, endIndex);
+
+    res.json({
+      success: true,
+      message: "List of uploaded files.",
+      data: paginatedFiles,
+      pagination: {
+        currentPage: page,
+        totalItems: files.length,
+        totalPages: Math.ceil(files.length / limit),
+        pageSize: limit
+      }
+    });
+  } catch (err) {
+    console.error("Error during GET /uploads:", err);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong."
+    });
+  }
+};
+
+export { upload, uploadHandler, getUploadedFiles };
