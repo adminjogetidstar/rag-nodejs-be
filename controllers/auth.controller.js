@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 dotenv.config();
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
+const ADMIN_ACCOUNT = process.env.ADMIN_ACCOUNT?.split(',') || [];
 const JWT_SECRET = process.env.JWT_SECRET;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 
@@ -37,7 +37,7 @@ const getJwtFromGoogle = async (req, res) => {
                     email,
                     name,
                     picture,
-                    role: hd === "idstar.co.id" ? "admin": "user"
+                    role: ADMIN_ACCOUNT.includes(email) ? "admin" : "user"
                 },
             }
         });
