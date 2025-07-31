@@ -1,5 +1,7 @@
-import ExcelJS from "exceljs";
+// exceljs_loader.js
 import { Document } from "langchain/document";
+import { readFile } from "fs/promises";
+import ExcelJS from "exceljs";
 
 class ExcelJSLoader {
   constructor(filePath) {
@@ -8,37 +10,34 @@ class ExcelJSLoader {
 
   async load() {
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(this.filePath);
+    const buffer = await readFile(this.filePath);
+    await workbook.xlsx.load(buffer);
 
     const docs = [];
 
     for (const sheet of workbook.worksheets) {
-      const sheetDocs = [];
-      let headers = [];
-
+      const headers = [];
       sheet.eachRow((row, rowNumber) => {
-        const rowValues = row.values.slice(1); // remove dummy index 0
-
+        const values = row.values.slice(1);
         if (rowNumber === 1) {
-          headers = rowValues;
+          headers.push(...values.map(h => String(h).trim()));
         } else {
-          const headerStr = headers.join(";");
-          const rowStr = rowValues.join(";");
-          sheetDocs.push(`${headerStr}: ${rowStr}`);
-        }
-      });
+          const rowObj = {};
+          headers.forEach((h, i) => {
+            rowObj[h] = values[i] ?? "";
+          });
 
-      sheetDocs.forEach((docText, rowNumber) => {
-        docs.push(
-          new Document({
-            pageContent: docText,
-            metadata: {
-              source: this.filePath,
-              sheet: sheet.name,
-              rowNumber,
-            },
-          })
-        );
+          docs.push(
+            new Document({
+              pageContent: JSON.stringify(rowObj),
+              metadata: {
+                source: this.filePath,
+                sheetName: sheet.name,
+                rowNumber: rowNumber - 1,
+              },
+            })
+          );
+        }
       });
     }
 
