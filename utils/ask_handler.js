@@ -1,4 +1,5 @@
 import { ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import { QdrantClient } from "@qdrant/js-client-rest";
 import { ChromaClient } from "chromadb";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
@@ -20,6 +21,7 @@ const geminiEmbeddings = new GoogleGenerativeAIEmbeddings({
 
 // Inisialisasi Chroma client
 const chromaClient = new ChromaClient({ baseUrl: process.env.CHROMA_URL });
+const qdrantClinet = new QdrantClient({ baseUrl: process.env.QDRANT_URL });
 
 const askHandler = async (question, userId) => {
     try {
@@ -27,25 +29,6 @@ const askHandler = async (question, userId) => {
         const collection = await chromaClient.getCollection({ name: process.env.COLLECTION_NAME });
 
         let allMatches = [];
-
-        // if (userId) {
-        //     const history = await collection.query({
-        //         queryEmbeddings: [queryEmbedding],
-        //         where: { userId },
-        //         nResults: 10,
-        //         include: ["documents", "metadatas", "distances"],
-        //     });
-
-        //     if (history.documents?.[0]?.length > 0) {
-        //         allMatches.push(
-        //         ...history.documents[0].map((doc, i) => ({
-        //             document: doc,
-        //             metadata: history.metadatas[0][i],
-        //             distance: history.distances[0][i],
-        //         }))
-        //         );
-        //     }
-        // }
 
         const manual = await collection.query({
             queryEmbeddings: [queryEmbedding],
@@ -78,23 +61,6 @@ const askHandler = async (question, userId) => {
 
         const result = await geminiLlm.invoke(prompt);
         const answer = result.content.trim();
-
-        // if (!answer.toLowerCase().includes("tidak tahu")) {
-        //     const qaText = `Q: ${question}\nA: ${answer}`;
-        //     const qaEmbedding = await geminiEmbeddings.embedQuery(qaText);
-
-        //     await collection.add({
-        //         ids: [uuidv4()],
-        //         documents: [qaText],
-        //         embeddings: [qaEmbedding],
-        //         metadatas: [{
-        //         extension: "qa",
-        //         source: question,
-        //         fileName: `${Date.now()}_${question}`,
-        //         userId,
-        //         }]
-        //     });
-        // }
 
         console.log("Response generated successfully");
 
