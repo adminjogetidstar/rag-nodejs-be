@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import indexFile from "../utils/index_file.js";
 import dotenv from "dotenv";
+import { QdrantClient } from "@qdrant/js-client-rest";
 
 dotenv.config();
 
@@ -11,6 +12,7 @@ const DIR_NAME = process.env.DIR_NAME;
 
 // Inisialisasi Chroma client
 const chromaClient = new ChromaClient({ baseUrl: process.env.CHROMA_URL });
+// const qdrantClient = new QdrantClient({ baseUrl: process.env.QDRANT_URL });
 
 const postCollections = async (req, res) => {
   try {
@@ -42,6 +44,14 @@ const getCollections = async (req, res) => {
       success: true,
       data: results,
     });
+    // const points = await qdrantClient.scroll(process.env.COLLECTION_NAME, {
+    //   with_payload: true,
+    //   with_vector: true
+    // })
+    // res.json({
+    //   success: true,
+    //   data: points.points,
+    // });
   } catch (err) {
     console.error("Error during GET /collections:", err);
     res.status(500).json({
@@ -73,6 +83,7 @@ const deleteCollections = async (req, res) => {
     // Hapus collection jika sudah ada
     try {
       await chromaClient.deleteCollection({ name: process.env.COLLECTION_NAME });
+      // await qdrantClient.deleteCollection(process.env.COLLECTION_NAME);
       console.log(`Flushed existing collection: ${process.env.COLLECTION_NAME}`);
     } catch (err) {
       console.warn(`No existing collection found or delete failed: ${err.message}`);

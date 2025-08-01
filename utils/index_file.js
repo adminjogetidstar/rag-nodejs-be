@@ -1,4 +1,6 @@
 import { Chroma } from "@langchain/community/vectorstores/chroma";
+import { QdrantVectorStore } from "@langchain/community/vectorstores/qdrant";
+import { QdrantClient } from "@qdrant/js-client-rest";
 import { ChromaClient } from "chromadb";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { DirectoryLoader } from "langchain/document_loaders/fs/directory";
@@ -60,10 +62,12 @@ const indexFile = async () => {
 
   // Inisialisasi Chroma
   const chromaClient = new ChromaClient({ baseUrl: process.env.CHROMA_URL });
+  // const qdrantClient = new QdrantClient({ baseUrl: process.env.QDRANT_URL });
 
   // Hapus collection jika sudah ada
   try {
     await chromaClient.deleteCollection({ name: process.env.COLLECTION_NAME });
+    // await qdrantClient.deleteCollection(process.env.COLLECTION_NAME);
     console.log(`Flushed existing collection: ${process.env.COLLECTION_NAME}`);
   } catch (err) {
     console.warn(`No existing collection found or delete failed: ${err.message}`);
@@ -74,6 +78,10 @@ const indexFile = async () => {
     collectionName: process.env.COLLECTION_NAME,
     url: process.env.CHROMA_URL,
   });
+  // await QdrantVectorStore.fromDocuments(simplifiedDocs, geminiEmbeddings, {
+  //   client: qdrantClient,
+  //   collectionName: process.env.COLLECTION_NAME
+  // })
 
   console.log("Documents successfully indexed into Chroma!");
 
