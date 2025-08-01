@@ -79,22 +79,12 @@ const extractCandidatesFromQuestion = (question) => {
 };
 
 const maskQuestionIfNeeded = (question, globalValueMap) => {
-    const candidates = extractCandidatesFromQuestion(question);
     let maskedQuestion = question;
-    const lowerCaseMap = {};
 
-    for (const [key, val] of Object.entries(globalValueMap)) {
-        lowerCaseMap[key.toLowerCase()] = val;
-    }
-
-    for (const candidate of candidates) {
-        const candidateLower = candidate.toLowerCase();
-        const maskValue = lowerCaseMap[candidateLower];
-
-        if (maskValue) {
-            const pattern = new RegExp(`\\[${escapeRegExp(candidate)}\\]`, "gi");
-            maskedQuestion = maskedQuestion.replace(pattern, maskValue);
-        }
+    for (const [originalValue, maskValue] of Object.entries(globalValueMap)) {
+        const escapedValue = escapeRegExp(originalValue);
+        const regex = new RegExp(`\\b${escapedValue}\\b`, "gi");
+        maskedQuestion = maskedQuestion.replace(regex, maskValue);
     }
 
     return maskedQuestion;
