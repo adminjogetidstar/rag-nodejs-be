@@ -23,46 +23,51 @@ const geminiEmbeddings = new GoogleGenerativeAIEmbeddings({
 const chromaClient = new ChromaClient({ baseUrl: process.env.CHROMA_URL });
 // const qdrantClinet = new QdrantClient({ baseUrl: process.env.QDRANT_URL });
 
+const escapeRegExp = (str) => {
+    return str.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&');
+};
+
 const mask = (obj, globalValueMap = {}) => {
-  const masked = {};
-  const maskMap = {};
+    const masked = {};
+    const maskMap = {};
 
-  for (const [key, value] of Object.entries(obj)) {
-    const valStr = value?.toString?.() ?? "";
-    if (valStr === "") {
-      masked[key] = valStr;
-      continue;
+    for (const [key, value] of Object.entries(obj)) {
+        const valStr = value?.toString?.() ?? "";
+        if (valStr === "") {
+            masked[key] = valStr;
+            continue;
+        }
+
+        const lookupKey = valStr.toLowerCase(); // Case-insensitive key
+        let maskKey;
+
+        if (globalValueMap[lookupKey]) {
+            maskKey = globalValueMap[lookupKey]; // gunakan mask yang sudah ada
+        } else {
+            maskKey = `[MASK_${uuidv4()}]`; // buat mask baru
+            globalValueMap[lookupKey] = maskKey;
+        }
+
+        masked[key] = maskKey;
+        maskMap[maskKey] = valStr; // Simpan original value untuk unmasking
     }
 
-    let maskKey;
-    
-    if (globalValueMap[valStr]) {
-      maskKey = globalValueMap[valStr]; // pakai UUID yang sudah ada
-    } else {
-      maskKey = `[MASK_${uuidv4()}]`; // UUID baru
-      globalValueMap[valStr] = maskKey;
-    }
-
-    masked[key] = maskKey;
-    maskMap[maskKey] = valStr;
-  }
-
-  return { masked, maskMap, globalValueMap };
+    return { masked, maskMap, globalValueMap };
 };
 
 const unmask = (text, maskMap) => {
     let result = text;
 
     for (const [key, value] of Object.entries(maskMap)) {
-        result = result.replaceAll(key, value);
+        const regex = new RegExp(escapeRegExp(key), "g"); // exact match
+        result = result.replace(regex, value);
     }
 
     return result;
-}
+};
 
 const extractCandidatesFromQuestion = (question) => {
     const matches = [];
-    // Tangkap semua isi dalam [ ... ]
     const regex = /\[([^\]]+)\]/g;
     let match;
 
@@ -76,7 +81,6 @@ const extractCandidatesFromQuestion = (question) => {
 const maskQuestionIfNeeded = (question, globalValueMap) => {
     const candidates = extractCandidatesFromQuestion(question);
     let maskedQuestion = question;
-    // Bikin globalValueMap versi lowercase → untuk pencocokan case-insensitive
     const lowerCaseMap = {};
 
     for (const [key, val] of Object.entries(globalValueMap)) {
@@ -88,14 +92,15 @@ const maskQuestionIfNeeded = (question, globalValueMap) => {
         const maskValue = lowerCaseMap[candidateLower];
 
         if (maskValue) {
-        // Regex untuk menggantikan [KARYAWAN 30] → [MASK_xyz]
-        const pattern = new RegExp(`\\[${candidate}\\]`, "gi"); // g = global, i = ignore case
-        maskedQuestion = maskedQuestion.replace(pattern, maskValue);
+            const pattern = new RegExp(`\\[${escapeRegExp(candidate)}\\]`, "gi");
+            maskedQuestion = maskedQuestion.replace(pattern, maskValue);
         }
     }
 
     return maskedQuestion;
 };
+
+const MASK = true;
 
 const askHandler = async (question, userId) => {
     try {
@@ -136,19 +141,22 @@ const askHandler = async (question, userId) => {
         let globalValueMap = {};
 
         combined.forEach((item, index) => {
-            let parsed;
-            try {
-                parsed = JSON.parse(item.document); // asumsikan doc berupa JSON string
-            } catch (e) {
-                parsed = { content: item.document }; // fallback jika bukan JSON
+            if (MASK) {
+                let parsed;
+                try {
+                    parsed = JSON.parse(item.document); // asumsikan doc berupa JSON string
+                } catch (e) {
+                    parsed = { content: item.document }; // fallback jika bukan JSON
+                }
+    
+                const { masked, maskMap, globalValueMap: updatedGlobalValueMap } = mask(parsed, globalValueMap);
+                globalValueMap = updatedGlobalValueMap;
+                Object.assign(fullMaskMap, maskMap);
+    
+                fullContext += JSON.stringify(masked, null, 2) + "\n\n";
+            } else {
+                fullContext += item.document + "\n\n";
             }
-
-            const { masked, maskMap, globalValueMap: updatedGlobalValueMap } = mask(parsed, globalValueMap);
-            globalValueMap = updatedGlobalValueMap;
-            Object.assign(fullMaskMap, maskMap);
-
-            fullContext += JSON.stringify(masked, null, 2) + "\n\n";
-            // fullContext += item.document + "\n\n";
         });
 
         const sources = combined
@@ -165,7 +173,7 @@ const askHandler = async (question, userId) => {
         const result = await geminiLlm.invoke(prompt);
         let answer = result.content.trim();
 
-        answer = unmask(answer, fullMaskMap);
+        answer = MASK ? unmask(answer, fullMaskMap) : answer;
 
         console.log("Response generated successfully");
 
