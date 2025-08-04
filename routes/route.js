@@ -1,5 +1,5 @@
 import express from "express";
-import uploadRouter from "./upload.route.js";
+import fileRouter from "./file.route.js";
 import collectionRouter from "./collection.route.js";
 import askRouter from "./ask.route.js";
 import authRouter from "./auth.route.js"
@@ -14,7 +14,7 @@ router.use((req, res, next) => {
 });
 router.use("/auth", authRouter)
 router.use("/ask", jwtAuth, askRouter);
-router.use("/upload", jwtAuth, uploadRouter);
+router.use("/files", jwtAuth, fileRouter);
 router.use("/collections", jwtAuth, collectionRouter);
 router.use("/whapify", whapifyRouter);
 
