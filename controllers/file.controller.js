@@ -132,12 +132,18 @@ const deleteFiles = async (req, res) => {
 
     // Hapus dari chroma
     const filenames = files.map(f => f.filename);
-    const collection = await chromaClient.getCollection({ name: process.env.COLLECTION_NAME });
-    await collection.delete({
-      where: {
-        fileName: { "$in": filenames}
-      }
-    })
+
+    try {
+      const collection = await chromaClient.getCollection({ name: process.env.COLLECTION_NAME });
+      await collection.delete({
+        where: {
+          fileName: { "$in": filenames}
+        }
+      });
+      console.log(`Flushed selected documents`);
+    } catch (err) {
+      console.warn(`No existing collection found or delete failed: ${err.message}`);
+    }
 
     // Hapus dari database
     await File.destroy({

@@ -1,6 +1,4 @@
 import { Chroma } from "@langchain/community/vectorstores/chroma";
-import { QdrantVectorStore } from "@langchain/community/vectorstores/qdrant";
-import { QdrantClient } from "@qdrant/js-client-rest";
 import { ChromaClient } from "chromadb";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { DirectoryLoader } from "langchain/document_loaders/fs/directory";
@@ -13,10 +11,10 @@ import JSONLoader from "./json_loader.js";
 
 dotenv.config();
 
-const indexFile = async () => {
+const indexFile = async (filenames, clearAll) => {
   const DIR_NAME = process.env.DIR_NAME;
 
-  console.log("Loading documents from /uploads folder...");
+  console.log(`Loading documents from ${DIR_NAME} folder...`);
 
   const loader = new DirectoryLoader(path.join(process.cwd(), DIR_NAME), {
     ".pdf": (path) => new PDFLoader(path, { splitPages: true }),
@@ -32,7 +30,9 @@ const indexFile = async () => {
     return 0;
   }
 
-  const simplifiedDocs = docs.map((doc) => {
+  const filteredDocs = docs.filter(doc => filenames.includes(path.basename(doc.metadata.source)));
+
+  const simplifiedDocs = filteredDocs.map((doc) => {
     const filePath = doc.metadata.source;
     const fileName = path.basename(filePath);
     const ext = path.extname(fileName).replace(".", "").toLowerCase();
@@ -62,15 +62,15 @@ const indexFile = async () => {
 
   // Inisialisasi Chroma
   const chromaClient = new ChromaClient({ baseUrl: process.env.CHROMA_URL });
-  // const qdrantClient = new QdrantClient({ baseUrl: process.env.QDRANT_URL });
 
-  // Hapus collection jika sudah ada
-  try {
-    await chromaClient.deleteCollection({ name: process.env.COLLECTION_NAME });
-    // await qdrantClient.deleteCollection(process.env.COLLECTION_NAME);
-    console.log(`Flushed existing collection: ${process.env.COLLECTION_NAME}`);
-  } catch (err) {
-    console.warn(`No existing collection found or delete failed: ${err.message}`);
+  if (clearAll) {
+    // Hapus collection jika sudah ada
+    try {
+      await chromaClient.deleteCollection({ name: process.env.COLLECTION_NAME });
+      console.log(`Flushed existing collection: ${process.env.COLLECTION_NAME}`);
+    } catch (err) {
+      console.warn(`No existing collection found or delete failed: ${err.message}`);
+    }
   }
 
   // Indexing ke Chroma
@@ -78,10 +78,6 @@ const indexFile = async () => {
     collectionName: process.env.COLLECTION_NAME,
     url: process.env.CHROMA_URL,
   });
-  // await QdrantVectorStore.fromDocuments(simplifiedDocs, geminiEmbeddings, {
-  //   client: qdrantClient,
-  //   collectionName: process.env.COLLECTION_NAME
-  // })
 
   console.log("Documents successfully indexed into Chroma!");
 
