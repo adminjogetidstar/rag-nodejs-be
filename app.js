@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import router from "./routes/route.js";
-import whatsappBot from "./utils/whatsapp_bot.js";
+// import whatsappBot from "./utils/whatsapp_bot.js";
 import cors from "cors";
 import sequelize from "./models/index.js";
 
