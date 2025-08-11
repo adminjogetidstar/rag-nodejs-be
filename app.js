@@ -11,7 +11,7 @@ const app = express();
 const FE_URL=process.env.FE_URL;
 
 app.use(cors({
-  origin: FE_URL,
+  origin: true,
   credentials: true,
   methods: ["GET", "POST", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
