@@ -61,7 +61,7 @@ const indexFile = async (filenames, clearAll) => {
   });
 
   // Inisialisasi Chroma
-  const chromaClient = new ChromaClient({ baseUrl: process.env.CHROMA_URL });
+  const chromaClient = new ChromaClient({ path: process.env.CHROMA_URL });
 
   if (clearAll) {
     // Hapus collection jika sudah ada

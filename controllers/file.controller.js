@@ -12,7 +12,7 @@ dotenv.config();
 const DIR_NAME = process.env.DIR_NAME;
 
 // Chroma client
-const chromaClient = new ChromaClient({ baseUrl: process.env.CHROMA_URL });
+const chromaClient = new ChromaClient({ path: process.env.CHROMA_URL });
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {

@@ -1,5 +1,4 @@
 import { ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
-import { QdrantClient } from "@qdrant/js-client-rest";
 import { ChromaClient } from "chromadb";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
@@ -20,7 +19,7 @@ const geminiEmbeddings = new GoogleGenerativeAIEmbeddings({
 });
 
 // Inisialisasi Chroma client
-const chromaClient = new ChromaClient({ baseUrl: process.env.CHROMA_URL });
+const chromaClient = new ChromaClient({ path: process.env.CHROMA_URL });
 // const qdrantClinet = new QdrantClient({ baseUrl: process.env.QDRANT_URL });
 
 const escapeRegExp = (str) => {
@@ -90,7 +89,7 @@ const maskQuestionIfNeeded = (question, globalValueMap) => {
     return maskedQuestion;
 };
 
-const MASK = true;
+const MASK = false;
 
 const askHandler = async (question, userId) => {
     try {

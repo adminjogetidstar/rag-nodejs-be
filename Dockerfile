@@ -1,20 +1,25 @@
-# Gunakan base image Node.js versi LTS
-FROM node:20
+# Stage 1: Build image
+FROM node:20-slim AS build
 
-# Buat direktori kerja di dalam container
 WORKDIR /app
 
-# Salin file package.json dan package-lock.json terlebih dahulu
+# Salin file dependency dulu biar cache-nya efisien
 COPY package*.json ./
 
-# Install semua dependencies (atau hanya prod jika NODE_ENV=production)
-RUN npm install
+# Hanya install production dependencies
+RUN npm install --production
 
-# Salin semua file project ke dalam container
+# Salin semua source code
 COPY . .
 
-# Ekspose port yang digunakan (ganti jika backend kamu bukan di port 3000)
+# Stage 2: Final image
+FROM node:20-slim
+
+WORKDIR /app
+
+# Salin hasil build dari tahap pertama
+COPY --from=build /app .
+
 EXPOSE 3000
 
-# Jalankan aplikasi
 CMD ["npm", "start"]

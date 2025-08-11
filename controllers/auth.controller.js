@@ -61,11 +61,10 @@ const getUserInfo = async (req, res) => {
                 email,
                 name,
                 picture,
-                role: hd === "idstar.co.id" ? "admin" : "user",
+                role: ADMIN_ACCOUNT.includes(email) ? "admin" : "user",
                 iat,
                 exp
             },
-            // data: "masuk ges"
         });
     } catch (err) {
         console.error("Error during GET /auth/user-info:", err);
