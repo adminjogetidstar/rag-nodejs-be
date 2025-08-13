@@ -1,7 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
 import router from "./routes/route.js";
-// import whatsappBot from "./utils/whatsapp_bot.js";
 import cors from "cors";
 import sequelize from "./models/index.js";
 
@@ -29,7 +28,6 @@ sequelize.sync({ alter: true })
     console.log("Database connected");
     app.listen(PORT, () => {
       console.log("RAG API is running on port:", PORT);
-      // whatsappBot();
     });
   })
   .catch((err) => {

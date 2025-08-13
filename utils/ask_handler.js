@@ -109,18 +109,6 @@ const askHandler = async (question, userId) => {
             distance: manual.distances[0][i],
         }));
 
-        // const manual = await qdrantClinet.search(process.env.COLLECTION_NAME, {
-        //     vector: queryEmbedding,
-        //     limit: 100,
-        //     with_payload: true,
-        // });
-
-        // const allMatches = manual.map((item) => ({
-        //     document: item.payload.content,
-        //     metadata: item.payload.metadata,
-        //     distance: item.score
-        // }))
-
         const combined = allMatches
             .sort((a, b) => a.distance - b.distance)
             .slice(0, 100);

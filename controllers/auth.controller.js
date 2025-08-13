@@ -19,10 +19,10 @@ const getJwtFromGoogle = async (req, res) => {
         });
 
         const payload = ticket.getPayload();
-        const { sub, email, name, picture, hd } = payload;
+        const { sub, email, name, picture } = payload;
 
         const token = jwt.sign(
-            { userId: sub, email, name, picture, hd },
+            { userId: sub, email, name, picture, role: ADMIN_ACCOUNT.includes(email) ? "admin" : "user" },
             JWT_SECRET,
             { expiresIn: '2h' }
         );
@@ -32,13 +32,6 @@ const getJwtFromGoogle = async (req, res) => {
             message: "Generate JWT success",
             data: {
                 token,
-                user: {
-                    userId: sub,
-                    email,
-                    name,
-                    picture,
-                    role: ADMIN_ACCOUNT.includes(email) ? "admin" : "user"
-                },
             }
         });
     } catch (err) {
@@ -51,7 +44,7 @@ const getJwtFromGoogle = async (req, res) => {
 }
 
 const getUserInfo = async (req, res) => {
-    const { userId, email, name, picture, hd, iat, exp } = req.user;
+    const { userId, email, name, picture, role, iat, exp } = req.user;
     try {
         res.json({
             success: true,
@@ -61,7 +54,7 @@ const getUserInfo = async (req, res) => {
                 email,
                 name,
                 picture,
-                role: ADMIN_ACCOUNT.includes(email) ? "admin" : "user",
+                role,
                 iat,
                 exp
             },
