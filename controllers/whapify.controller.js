@@ -36,10 +36,10 @@ const webhookHandler = async (req, res) => {
             return res.status(response.status).send(response.data);
         } catch (err) {
             console.error("Error Whapify:", err);
-            return res.status(200).send("Something went wrong");
+            return res.status(500).send("Something went wrong");
         }
     } else {
-        return res.status(200).send("Just receiving Whatsapp message");
+        return res.status(403).send("Invalid Secret Key & Just receiving Whatsapp message");
     }
 }
 
