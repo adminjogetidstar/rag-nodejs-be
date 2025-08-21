@@ -12,7 +12,8 @@ const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD
 const sequelize = new Sequelize(POSTGRES_DATABASE, POSTGRES_USERNAME, POSTGRES_PASSWORD, {
   host: POSTGRES_HOST,
   port: POSTGRES_PORT,
-  dialect: "postgres"
+  dialect: "postgres",
+  timezone: "+07:00",
 });
 
 export default sequelize;

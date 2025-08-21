@@ -4,6 +4,7 @@ import collectionRouter from "./collection.route.js";
 import askRouter from "./ask.route.js";
 import authRouter from "./auth.route.js"
 import whapifyRouter from "./whapify.route.js"
+import phoneRouter from "./phone.route.js"
 import jwtApiKeyAuth from "../middlewares/jwt_api_key_auth.js";
 import jwtAuth from "../middlewares/jwt_auth.js";
 
@@ -17,5 +18,6 @@ router.use("/ask", jwtAuth, askRouter);
 router.use("/files", jwtAuth, fileRouter);
 router.use("/collections", jwtAuth, collectionRouter);
 router.use("/whapify", whapifyRouter);
+router.use("/phones", jwtAuth, phoneRouter);
 
 export default router;
