@@ -5,6 +5,7 @@ import UserRole from "./user_role.js";
 import Role from "./role.js";
 import File from "./file.js";
 import Phone from "./phone.js";
+import AuditLog from "./audit_log.js";
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ const RoleModel = Role(sequelize);
 const FileModel = File(sequelize);
 const PhoneModel = Phone(sequelize);
 const UserRoleModel = UserRole(sequelize);
+const AuditLogModel = AuditLog(sequelize)
 
 // 🔗 Relasi One-to-One via UserRole
 UserModel.hasOne(UserRoleModel, { foreignKey: "userId", onDelete: "CASCADE" });
@@ -39,4 +41,4 @@ UserRoleModel.belongsTo(UserModel, { foreignKey: "userId" });
 RoleModel.hasMany(UserRoleModel, { foreignKey: "roleId", onDelete: "CASCADE" });
 UserRoleModel.belongsTo(RoleModel, { foreignKey: "roleId" });
 
-export { sequelize, UserModel, RoleModel, FileModel, PhoneModel, UserRoleModel };
+export { sequelize, UserModel, RoleModel, FileModel, PhoneModel, UserRoleModel, AuditLogModel };

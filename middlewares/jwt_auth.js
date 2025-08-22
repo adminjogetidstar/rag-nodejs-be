@@ -25,7 +25,7 @@ const jwtAuth = async (req, res, next) => {
     return next();
   }
 
-  return res.status(403).json({
+  return res.status(401).json({
     success: false,
     message: "You must provide a valid JWT"
   });

@@ -53,7 +53,7 @@ const getJwtFromGoogle = async (req, res) => {
                 role: roleUser.name
             },
             JWT_SECRET,
-            { expiresIn: '30d' }
+            { expiresIn: '2h' }
         );
 
         res.json({

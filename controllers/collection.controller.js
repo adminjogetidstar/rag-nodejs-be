@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import indexFile from "../utils/index_file.js";
 import dotenv from "dotenv";
-import File from "../models/file.js";
+import { FileModel } from "../models/index.js";
 
 dotenv.config();
 
@@ -25,7 +25,7 @@ const postCollections = async (req, res) => {
 
   try {
     // Ambil data dari tables
-    const files = await File.findAll({
+    const files = await FileModel.findAll({
       where: {
         id: fileIds
       }
@@ -51,7 +51,7 @@ const postCollections = async (req, res) => {
     // Jika clear all
     if (clearAll) {
       // Ubah indexed menjadi false
-      await File.update({
+      await FileModel.update({
         indexed: false
       }, {
         where: {}
@@ -59,7 +59,7 @@ const postCollections = async (req, res) => {
     }
 
     // Ubah indexed menjadi true untuk id yang dipilih
-    await File.update({
+    await FileModel.update({
       indexed: true
     }, {
       where: {
@@ -109,7 +109,7 @@ const deleteCollections = async (req, res) => {
     }
 
     // Ubah indexed menjadi false
-    await File.update({
+    await FileModel.update({
       indexed: false
     }, {
       where: {}
