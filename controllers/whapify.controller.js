@@ -29,7 +29,7 @@ const webhookHandler = async (req, res) => {
         formData.append("recipient", userId);
         formData.append("type", "text");
 
-        let phone = await PhoneModel.findOne({ where: { number_hash: hashNumber } });
+        let phone = await PhoneModel.findOne({ where: { numberHash: hashNumber } });
         if (!phone) {
             formData.append("message", "Nomor anda tidak terdaftar di sistem kami. Silakan hubungi admin untuk bantuan lebih lanjut.");
 
@@ -52,7 +52,7 @@ const webhookHandler = async (req, res) => {
         if (diffDays > 30) {
             await PhoneModel.update({ status: "inactive" }, { where: { id: phone.id } });
 
-            phone = await PhoneModel.findOne({ where: { number_hash: hashNumber } });
+            phone = await PhoneModel.findOne({ where: { numberHash: hashNumber } });
         }
 
         if (phone && phone.status === "inactive") {
