@@ -1,10 +1,9 @@
 import { DataTypes, UUIDV4 } from "sequelize";
 
 export default (sequelize) => {
-  const Phone = sequelize.define("Phone", {
+  const User = sequelize.define("User", {
     id: {
-      type: DataTypes.UUID,
-      defaultValue: UUIDV4,
+      type: DataTypes.STRING,
       allowNull: false,
       primaryKey: true,
     },
@@ -12,18 +11,13 @@ export default (sequelize) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    number : {
+    email: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: false
     },
-    numberHash: {
+    emailHash: {
       type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    status: {
-      type: DataTypes.ENUM("active", "inactive"),
-      defaultValue: "active",
+      allowNull: false
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -40,9 +34,9 @@ export default (sequelize) => {
       }
     }
   }, {
-    tableName: 'phone',
+    tableName: 'user',
     timestamps: true
   });
 
-  return Phone;
+  return User;
 };

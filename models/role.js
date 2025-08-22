@@ -1,7 +1,7 @@
 import { DataTypes, UUIDV4 } from "sequelize";
 
 export default (sequelize) => {
-  const Phone = sequelize.define("Phone", {
+  const Role = sequelize.define("Role", {
     id: {
       type: DataTypes.UUID,
       defaultValue: UUIDV4,
@@ -11,15 +11,6 @@ export default (sequelize) => {
     name: {
       type: DataTypes.STRING,
       allowNull: false
-    },
-    number : {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    numberHash: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
     },
     status: {
       type: DataTypes.ENUM("active", "inactive"),
@@ -40,9 +31,9 @@ export default (sequelize) => {
       }
     }
   }, {
-    tableName: 'phone',
+    tableName: 'role',
     timestamps: true
   });
 
-  return Phone;
+  return Role;
 };

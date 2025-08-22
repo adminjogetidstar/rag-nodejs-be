@@ -1,5 +1,10 @@
 import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
+import User from "./user.js";
+import UserRole from "./user_role.js";
+import Role from "./role.js";
+import File from "./file.js";
+import Phone from "./phone.js";
 
 dotenv.config();
 
@@ -14,6 +19,24 @@ const sequelize = new Sequelize(POSTGRES_DATABASE, POSTGRES_USERNAME, POSTGRES_P
   port: POSTGRES_PORT,
   dialect: "postgres",
   timezone: "+07:00",
+  dialectOptions: {
+    useUTC: false,
+  },
+  logging: false,
 });
 
-export default sequelize;
+// Init models
+const UserModel = User(sequelize);
+const RoleModel = Role(sequelize);
+const FileModel = File(sequelize);
+const PhoneModel = Phone(sequelize);
+const UserRoleModel = UserRole(sequelize);
+
+// 🔗 Relasi One-to-One via UserRole
+UserModel.hasOne(UserRoleModel, { foreignKey: "userId", onDelete: "CASCADE" });
+UserRoleModel.belongsTo(UserModel, { foreignKey: "userId" });
+
+RoleModel.hasMany(UserRoleModel, { foreignKey: "roleId", onDelete: "CASCADE" });
+UserRoleModel.belongsTo(RoleModel, { foreignKey: "roleId" });
+
+export { sequelize, UserModel, RoleModel, FileModel, PhoneModel, UserRoleModel };

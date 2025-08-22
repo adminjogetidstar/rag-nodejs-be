@@ -2,9 +2,8 @@ import multer from "multer";
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
-import indexFile from "../utils/index_file.js";
-import File from "../models/file.js";
 import { ChromaClient } from "chromadb";
+import { FileModel } from "../models/index.js";
 
 dotenv.config();
 
@@ -38,7 +37,7 @@ const postFiles = async (req, res) => {
 
     const uploadedFiles = await Promise.all(
       req.files.map((file) => {
-        return File.create({
+        return FileModel.create({
           filename: file.filename,
           filepath: `${DIR_NAME}/${file.filename}`
         })
@@ -66,13 +65,13 @@ const getFiles = async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    const files = await File.findAll({
+    const files = await FileModel.findAll({
       order: [["createdAt", "DESC"]],
       offset: offset,
       limit: limit
     });
 
-    const totalCount = await File.count();
+    const totalCount = await FileModel.count();
 
     res.json({
       success: true,
@@ -106,7 +105,7 @@ const deleteFiles = async (req, res) => {
 
   try {
     // Ambil data dari tables
-    const files = await File.findAll({
+    const files = await FileModel.findAll({
       where: {
         id: fileIds
       }
@@ -146,7 +145,7 @@ const deleteFiles = async (req, res) => {
     }
 
     // Hapus dari database
-    await File.destroy({
+    await FileModel.destroy({
       where: {
         id: fileIds
       }

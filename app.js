@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import router from "./routes/route.js";
 import cors from "cors";
-import sequelize from "./models/index.js";
+import { sequelize } from "./models/index.js";
 
 dotenv.config();
 const app = express();
@@ -12,7 +12,7 @@ const FE_URL=process.env.FE_URL;
 app.use(cors({
   origin: true,
   credentials: true,
-  methods: ["GET", "POST", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 

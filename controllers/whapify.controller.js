@@ -46,8 +46,8 @@ const webhookHandler = async (req, res) => {
         }
 
         const now = moment();
-        const createdAt = moment(phone.createdAt);
-        const diffDays = now.diff(createdAt, 'days');
+        const updatedAt = moment(phone.updatedAt, "D/M/YYYY HH.mm.ss");
+        const diffDays = now.diff(updatedAt, 'days');
 
         if (diffDays > 30) {
             await Phone.update({ status: "inactive" }, { where: { id: phone.id } });

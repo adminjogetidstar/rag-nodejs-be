@@ -1,11 +1,12 @@
 import { OAuth2Client } from "google-auth-library";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
+import { encrypt, decrypt, hashValue } from "../utils/encryption_util.js";
+import { RoleModel, UserModel, UserRoleModel } from "../models/index.js";
 
 dotenv.config();
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-const ADMIN_ACCOUNT = process.env.ADMIN_ACCOUNT?.split(',') || [];
 const JWT_SECRET = process.env.JWT_SECRET;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 
@@ -21,10 +22,38 @@ const getJwtFromGoogle = async (req, res) => {
         const payload = ticket.getPayload();
         const { sub, email, name, picture } = payload;
 
+        let user = await UserModel.findOne({ where: { id: sub } });
+        let userRole = await UserRoleModel.findOne({ where: { userId: sub } });
+        let roleUser = await RoleModel.findOne({ where: { name: "user" } });
+
+        if (!roleUser) {
+            roleUser = await RoleModel.create({ name: "user" });
+        }
+
+        if (!user) {
+            user = await UserModel.create({
+                id: sub,
+                email: encrypt(email),
+                emailHash: hashValue(email),
+                name
+            });
+            userRole = await UserRoleModel.create({
+                userId: sub,
+                roleId: roleUser.id
+            });
+        }
+
         const token = jwt.sign(
-            { userId: sub, email, name, picture, role: ADMIN_ACCOUNT.includes(email) ? "admin" : "user" },
+            {
+                userId: user.id,
+                email: decrypt(user.email),
+                name: user.name,
+                picture,
+                roleId: userRole.roleId,
+                role: roleUser.name
+            },
             JWT_SECRET,
-            { expiresIn: '2h' }
+            { expiresIn: '30d' }
         );
 
         res.json({
@@ -44,7 +73,16 @@ const getJwtFromGoogle = async (req, res) => {
 }
 
 const getUserInfo = async (req, res) => {
-    const { userId, email, name, picture, role, iat, exp } = req.user;
+    const {
+        userId,
+        email,
+        name,
+        picture,
+        roleId,
+        role,
+        iat,
+        exp
+    } = req.user;
     try {
         res.json({
             success: true,
@@ -54,6 +92,7 @@ const getUserInfo = async (req, res) => {
                 email,
                 name,
                 picture,
+                roleId,
                 role,
                 iat,
                 exp

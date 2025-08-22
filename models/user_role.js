@@ -1,29 +1,20 @@
 import { DataTypes, UUIDV4 } from "sequelize";
 
 export default (sequelize) => {
-  const Phone = sequelize.define("Phone", {
+  const UserRole = sequelize.define("UserRole", {
     id: {
       type: DataTypes.UUID,
       defaultValue: UUIDV4,
       allowNull: false,
       primaryKey: true,
     },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    number : {
+    userId: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    numberHash: {
-      type: DataTypes.STRING,
+    roleId: {
+      type: DataTypes.UUID,
       allowNull: false,
-      unique: true,
-    },
-    status: {
-      type: DataTypes.ENUM("active", "inactive"),
-      defaultValue: "active",
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -40,9 +31,9 @@ export default (sequelize) => {
       }
     }
   }, {
-    tableName: 'phone',
+    tableName: 'user_role',
     timestamps: true
   });
 
-  return Phone;
+  return UserRole;
 };

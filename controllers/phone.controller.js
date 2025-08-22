@@ -1,4 +1,4 @@
-import Phone from "../models/phone.js";
+import { PhoneModel } from "../models/index.js";
 import { decrypt, encrypt, hashValue } from "../utils/encryption_util.js";
 
 const postPhone = async (req, res) => {
@@ -15,25 +15,16 @@ const postPhone = async (req, res) => {
   const hashedNumber = hashValue(number);
 
   try {
-    const existing = await Phone.findOne({ where: { number_hash: hashedNumber } });
+    const existing = await PhoneModel.findOne({ where: { numberHash: hashedNumber } });
 
     if (existing) {
-      const existingData = {
-        id: existing.id,
-        name: existing.name,
-        number: decrypt(existing.number),
-        createdAt: existing.createdAt,
-        updatedAt: existing.updatedAt,
-        status: existing.status
-      };
-      return res.status(200).json({
+      return res.status(400).json({
         success: true,
         message: "Phone number already exists",
-        data: existingData
       });
     }
 
-    const phone = await Phone.create({ name, number: encryptedNumber, number_hash: hashedNumber });
+    const phone = await PhoneModel.create({ name, number: encryptedNumber, numberHash: hashedNumber });
     const data = {
       id: phone.id,
       name: phone.name,
@@ -68,7 +59,7 @@ const putPhone = async (req, res) => {
   }
 
   try {
-    const existing = await Phone.findOne({ where: { id: id } });
+    const existing = await PhoneModel.findOne({ where: { id: id } });
 
     if (!existing) {
       return res.status(404).json({
@@ -82,16 +73,16 @@ const putPhone = async (req, res) => {
     if (name !== undefined) updateData.name = name;
     if (number !== undefined) {
       updateData.number = encrypt(number);
-      updateData.number_hash = hashValue(number);
+      updateData.numberHash = hashValue(number);
     }
     if (status !== undefined) updateData.status = status;
 
-    await Phone.update(
+    await PhoneModel.update(
       updateData, 
       { where: { id: id } }
     );
 
-    const updatedPhone = await Phone.findOne({ where: { id: id } });
+    const updatedPhone = await PhoneModel.findOne({ where: { id: id } });
     const data = {
       id: updatedPhone.id,
       name: updatedPhone.name,
@@ -121,7 +112,7 @@ const getPhones = async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    const phones = await Phone.findAll({
+    const phones = await PhoneModel.findAll({
       order: [["createdAt", "DESC"]],
       offset: offset,
       limit: limit
@@ -136,7 +127,7 @@ const getPhones = async (req, res) => {
       status: phone.status
     }));
 
-    const totalCount = await Phone.count();
+    const totalCount = await PhoneModel.count();
 
     res.json({
       success: true,
@@ -170,7 +161,7 @@ const deletePhones = async (req, res) => {
 
   try {
     // Ambil data dari tables
-    const phones = await Phone.findAll({
+    const phones = await PhoneModel.findAll({
       where: {
         id: phoneIds
       }
@@ -183,7 +174,7 @@ const deletePhones = async (req, res) => {
     }
 
     // Hapus data dari tables
-    await Phone.destroy({
+    await PhoneModel.destroy({
       where: {
         id: phoneIds
       }
