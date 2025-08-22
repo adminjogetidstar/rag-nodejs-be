@@ -25,7 +25,7 @@ const auditLogger = (req, res, next) => {
       status: res.statusCode,
       duration: `${duration} ms`,
       userId: req.user ? req.user.userId : null,
-      number: shouldLogResponse ? log.response : null, // Hanya simpan nomor jika endpoint whapify
+      number: shouldLogResponse ? responseBody : null, // Hanya simpan nomor jika endpoint whapify
     });
     
   });
