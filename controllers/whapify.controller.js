@@ -2,9 +2,9 @@ import dotenv from "dotenv";
 import askHandler from "../utils/ask_handler.js";
 import FormData from "form-data";
 import axios from "axios";
-import Phone from "../models/phone.js";
 import moment from "moment-timezone";
 import { hashValue } from "../utils/encryption_util.js";
+import { PhoneModel } from "../models/index.js";
 
 dotenv.config();
 
@@ -29,7 +29,7 @@ const webhookHandler = async (req, res) => {
         formData.append("recipient", userId);
         formData.append("type", "text");
 
-        let phone = await Phone.findOne({ where: { number_hash: hashNumber } });
+        let phone = await PhoneModel.findOne({ where: { number_hash: hashNumber } });
         if (!phone) {
             formData.append("message", "Nomor anda tidak terdaftar di sistem kami. Silakan hubungi admin untuk bantuan lebih lanjut.");
 
@@ -50,9 +50,9 @@ const webhookHandler = async (req, res) => {
         const diffDays = now.diff(updatedAt, 'days');
 
         if (diffDays > 30) {
-            await Phone.update({ status: "inactive" }, { where: { id: phone.id } });
+            await PhoneModel.update({ status: "inactive" }, { where: { id: phone.id } });
 
-            phone = await Phone.findOne({ where: { number_hash: hashNumber } });
+            phone = await PhoneModel.findOne({ where: { number_hash: hashNumber } });
         }
 
         if (phone && phone.status === "inactive") {
