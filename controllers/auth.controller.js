@@ -22,7 +22,13 @@ const getJwtFromGoogle = async (req, res) => {
         const payload = ticket.getPayload();
         const { sub, email, name, picture } = payload;
 
-        let user = await UserModel.findOne({ where: { id: sub } });
+        let user = await UserModel.findOne({
+            where: { id: sub },
+            include: {
+                model: UserRoleModel,
+                include: RoleModel
+            }
+        });
         let userRole = await UserRoleModel.findOne({ where: { userId: sub } });
         let roleUser = await RoleModel.findOne({ where: { name: "user" } });
 
@@ -49,8 +55,8 @@ const getJwtFromGoogle = async (req, res) => {
                 email: decrypt(user.email),
                 name: user.name,
                 picture,
-                roleId: userRole.roleId,
-                role: roleUser.name
+                roleId: user.UserRole ? user.UserRole.roleId : userRole.roleId,
+                role: user.UserRole ? user.UserRole.Role.name : roleUser.name
             },
             JWT_SECRET,
             { expiresIn: '2h' }
