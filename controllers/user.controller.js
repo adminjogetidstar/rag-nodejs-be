@@ -16,7 +16,7 @@ const putUser = async (req, res) => {
 
     if (!existing) {
       return res.status(404).json({
-        success: true,
+        success: false,
         message: "User Id not found",
       });
     }

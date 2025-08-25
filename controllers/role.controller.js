@@ -15,7 +15,7 @@ const postRole = async (req, res) => {
 
     if (existing) {
       return res.status(400).json({
-        success: true,
+        success: false,
         message: "Role already exists",
       });
     }
@@ -51,7 +51,7 @@ const putRole = async (req, res) => {
 
     if (!existing) {
       return res.status(404).json({
-        success: true,
+        success: false,
         message: "Id not found",
       });
     }

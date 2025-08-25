@@ -19,7 +19,7 @@ const postPhone = async (req, res) => {
 
     if (existing) {
       return res.status(400).json({
-        success: true,
+        success: false,
         message: "Phone number already exists",
       });
     }
@@ -63,7 +63,7 @@ const putPhone = async (req, res) => {
 
     if (!existing) {
       return res.status(404).json({
-        success: true,
+        success: false,
         message: "Id not found",
       });
     }
