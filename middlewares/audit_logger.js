@@ -5,15 +5,13 @@ const auditLogger = (req, res, next) => {
   const oldSend = res.send;
 
   let responseBody;
+  res.send = function (body) {
+    responseBody = body;
+    return oldSend.apply(res, arguments);
+  };
 
-  const shouldLogResponse = req.originalUrl.includes("/whapify/webhook");
 
-  if (shouldLogResponse) {
-    res.send = function (body) {
-      responseBody = body;
-      return oldSend.apply(res, arguments);
-    };
-  }
+  const shouldLogNumber = req.originalUrl.includes("/whapify/webhook");
 
   res.on("finish", () => {
     const duration = Date.now() - start;
@@ -25,7 +23,10 @@ const auditLogger = (req, res, next) => {
       status: res.statusCode,
       duration: `${duration} ms`,
       userId: req.user ? req.user.userId : null,
-      number: shouldLogResponse ? responseBody : null, // Hanya simpan nomor jika endpoint whapify
+      number: shouldLogNumber ? req.body?.data?.phone : null,
+      requestQuery: JSON.stringify(req.query),
+      requestBody: JSON.stringify(req.body),
+      response: responseBody
     });
     
   });

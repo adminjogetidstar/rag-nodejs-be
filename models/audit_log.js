@@ -36,6 +36,18 @@ export default (sequelize) => {
       type: DataTypes.STRING,
       allowNull: true
     },
+    requestQuery: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    requestBody: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    response: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
     createdAt: {
       type: DataTypes.DATE,
       get() {
