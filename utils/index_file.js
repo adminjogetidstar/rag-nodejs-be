@@ -11,6 +11,27 @@ import JSONLoader from "./json_loader.js";
 
 dotenv.config();
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const safeEmbedBatch = async (geminiEmbeddings, contents, retries = 3) => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      return await geminiEmbeddings.embedDocuments(contents);
+    } catch (err) {
+      if (err.status === 429 || err.message.includes("Too Many Requests")) {
+        const wait = 1000 * attempt;
+        console.warn(
+          `⚠️ Rate limited. Retry attempt ${attempt} in ${wait}ms...`
+        );
+        await sleep(wait);
+      } else {
+        throw err;
+      }
+    }
+  }
+  throw new Error("Failed to embed batch after retries.");
+}
+
 const indexFile = async (filenames, clearAll) => {
   const DIR_NAME = process.env.DIR_NAME;
 
@@ -56,7 +77,7 @@ const indexFile = async (filenames, clearAll) => {
 
   // Inisialisasi Embeddings
   const geminiEmbeddings = new GoogleGenerativeAIEmbeddings({
-    modelName: "models/embedding-001",
+    modelName: "gemini-embedding-001",
     apiKey: process.env.GEMINI_API_KEY,
   });
 
@@ -74,10 +95,43 @@ const indexFile = async (filenames, clearAll) => {
   }
 
   // Indexing ke Chroma
-  await Chroma.fromDocuments(simplifiedDocs, geminiEmbeddings, {
-    collectionName: process.env.COLLECTION_NAME,
-    url: process.env.CHROMA_URL,
+  // await Chroma.fromDocuments(simplifiedDocs, geminiEmbeddings, {
+  //   collectionName: process.env.COLLECTION_NAME,
+  //   url: process.env.CHROMA_URL,
+  // });
+
+  // Buat collection baru
+  const collection = await chromaClient.createCollection({
+    name: process.env.COLLECTION_NAME,
   });
+
+  // ===== Batch embedding =====
+  const batchSize = 5;
+  for (let i = 0; i < simplifiedDocs.length; i += batchSize) {
+    const batchDocs = simplifiedDocs.slice(i, i + batchSize);
+    const contents = batchDocs.map((d) => d.pageContent);
+
+    try {
+      const embeddings = await safeEmbedBatch(geminiEmbeddings, contents, 5);
+
+      await collection.add({
+        ids: batchDocs.map(
+          (d) => `${d.metadata.fileName}-${d.metadata.page}`
+        ),
+        embeddings,
+        metadatas: batchDocs.map((d) => d.metadata),
+        documents: contents,
+      });
+
+      console.log(
+        `✅ Indexed batch ${i / batchSize + 1} (${batchDocs.length} docs)`
+      );
+
+      await sleep(200); // kecilin request speed
+    } catch (err) {
+      console.error(`❌ Failed batch starting at doc[${i}]:`, err.message);
+    }
+  }
 
   console.log("Documents successfully indexed into Chroma!");
 
