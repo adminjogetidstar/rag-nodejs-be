@@ -14,7 +14,7 @@ const geminiLlm = new ChatGoogleGenerativeAI({
 
 // Inisialisasi embeddings
 const geminiEmbeddings = new GoogleGenerativeAIEmbeddings({
-  modelName: "models/embedding-001",
+  modelName: "gemini-embedding-001",
   apiKey: process.env.GEMINI_API_KEY,
 });
 
