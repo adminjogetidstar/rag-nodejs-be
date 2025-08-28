@@ -11,7 +11,11 @@ dotenv.config();
 const DIR_NAME = process.env.DIR_NAME;
 
 // Inisialisasi Chroma client
-const chromaClient = new ChromaClient({ path: process.env.CHROMA_URL });
+const chromaClient = new ChromaClient({
+  host: process.env.CHROMA_HOST,
+  port: parseInt(process.env.CHROMA_PORT),
+  ssl: process.env.CHROMA_SSL === "true",
+});
 
 const postCollections = async (req, res) => {
   const { fileIds, clearAll } = req.body;

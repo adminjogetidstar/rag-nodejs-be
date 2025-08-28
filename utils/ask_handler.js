@@ -19,8 +19,11 @@ const geminiEmbeddings = new GoogleGenerativeAIEmbeddings({
 });
 
 // Inisialisasi Chroma client
-const chromaClient = new ChromaClient({ path: process.env.CHROMA_URL });
-// const qdrantClinet = new QdrantClient({ baseUrl: process.env.QDRANT_URL });
+const chromaClient = new ChromaClient({
+    host: process.env.CHROMA_HOST,
+    port: parseInt(process.env.CHROMA_PORT),
+    ssl: process.env.CHROMA_SSL === "true",
+});
 
 const escapeRegExp = (str) => {
     return str.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&');

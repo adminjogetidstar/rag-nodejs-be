@@ -82,7 +82,11 @@ const indexFile = async (filenames, clearAll) => {
   });
 
   // Inisialisasi Chroma
-  const chromaClient = new ChromaClient({ path: process.env.CHROMA_URL });
+  const chromaClient = new ChromaClient({
+    host: process.env.CHROMA_HOST,
+    port: parseInt(process.env.CHROMA_PORT),
+    ssl: process.env.CHROMA_SSL === "true",
+  });
 
   if (clearAll) {
     // Hapus collection jika sudah ada
@@ -127,7 +131,7 @@ const indexFile = async (filenames, clearAll) => {
         `✅ Indexed batch ${i / batchSize + 1} (${batchDocs.length} docs)`
       );
 
-      await sleep(200); // kecilin request speed
+      // await sleep(200); // kecilin request speed
     } catch (err) {
       console.error(`❌ Failed batch starting at doc[${i}]:`, err.message);
     }
