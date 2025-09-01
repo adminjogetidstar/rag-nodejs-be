@@ -9,6 +9,7 @@ import jwtApiKeyAuth from "../middlewares/jwt_api_key_auth.js";
 import jwtAuth from "../middlewares/jwt_auth.js";
 import roleRouter from "./role.route.js";
 import userRouter from "./user.route.js";
+import sheetRouter from "./sheet.route.js";
 import roleAuth from "../middlewares/role_auth.js";
 
 const router = express.Router();
@@ -23,6 +24,7 @@ router.use("/collections", jwtAuth, roleAuth("admin"), collectionRouter);
 router.use("/whapify", whapifyRouter);
 router.use("/phones", jwtAuth, roleAuth("admin"), phoneRouter);
 router.use("/roles", jwtAuth, roleAuth("admin"), roleRouter);
-router.use("/users", jwtAuth, roleAuth("admin"), userRouter)
+router.use("/users", jwtAuth, roleAuth("admin"), userRouter);
+router.use("/sheets", jwtAuth, roleAuth("admin"), sheetRouter);
 
 export default router;
