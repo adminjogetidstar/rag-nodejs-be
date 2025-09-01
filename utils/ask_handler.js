@@ -147,7 +147,17 @@ const askHandler = async (question, userId) => {
 
         const finalQuestion = maskQuestionIfNeeded(question, globalValueMap);
 
-        const prompt = `Jawablah pertanyaan di bawah ini hanya berdasarkan informasi dari dokumen yang disediakan. Jika informasi tidak ditemukan, jawab: "Saya tidak tahu".\n\nDokumen:\n${fullContext}\n\nPertanyaan: ${finalQuestion}\n\n`;
+        const prompt = `
+        Jawablah pertanyaan di bawah ini hanya berdasarkan informasi dari dokumen yang disediakan.
+        Jika informasi yang ditanyakan tidak ada di dalam dokumen, berikan jawaban yang sopan dan membantu, misalnya
+        - Memberitahukan informasi apa yang tersedia dalam dokumen.
+        - Menyampaikan keterbatasan dengan ramah.
+        - Menyarankan sumber alternatif atau langkah lanjutan yang relevan.
+        Dokumen:
+        ${fullContext}
+        Pertanyaan:
+        ${finalQuestion}
+        `;
         console.log("Prompt:", prompt);
 
         const result = await geminiLlm.invoke(prompt);

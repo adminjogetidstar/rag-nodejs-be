@@ -105,7 +105,7 @@ const indexFile = async (filenames, clearAll) => {
   // });
 
   // Buat collection baru
-  const collection = await chromaClient.createCollection({
+  const collection = await chromaClient.getOrCreateCollection({
     name: process.env.COLLECTION_NAME,
   });
 
