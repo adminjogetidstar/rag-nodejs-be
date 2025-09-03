@@ -12,6 +12,7 @@ const WEBHOOK_SECRET = process.env.WHAPIFY_WEBHOOK_SECRET;
 const API_KEY = process.env.WHAPIFY_API_KEY;
 const ID = process.env.WHAPIFY_ACCOUNT_UNIQUE_ID;
 const BASE_URL = process.env.WHAPIFY_BASE_URL
+const EXPIRED_DAYS = parseInt(process.env.EXPIRED_DAYS);
 
 const webhookHandler = async (req, res) => {
     const body = req.body;
@@ -49,7 +50,7 @@ const webhookHandler = async (req, res) => {
         const updatedAt = moment(phone.updatedAt, "D/M/YYYY HH.mm.ss");
         const diffDays = now.diff(updatedAt, 'days');
 
-        if (diffDays > 30) {
+        if (diffDays > EXPIRED_DAYS) {
             await PhoneModel.update({ status: "inactive" }, { where: { id: phone.id } });
 
             phone = await PhoneModel.findOne({ where: { numberHash: hashNumber } });
