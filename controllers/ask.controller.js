@@ -4,7 +4,15 @@ import askHandler from "../utils/ask_handler.js";
 dotenv.config();
 
 const postAsk = async (req, res) => {
-  const { question, userId } = req.body;
+  const user = req.user;
+  const { question } = req.body;
+
+  if (user.chat === "inactive") {
+    return res.status(403).json({
+      success: false,
+      message: "Akun anda belum diizinkan untuk chat di sistem kami. Silakan hubungi admin untuk bantuan lebih lanjut."
+    });
+  }
 
   if (!question) {
     return res.status(400).json({
@@ -12,15 +20,9 @@ const postAsk = async (req, res) => {
       message: "Question is required"
     });
   }
-  if (!userId) {
-    return res.status(400).json({
-      success: false,
-      message: "userId is required"
-    });
-  }
 
   try {
-    const result = await askHandler(question, userId);
+    const result = await askHandler(question, user.id);
 
     res.json({
       success: true,

@@ -1,4 +1,4 @@
-import { DataTypes, UUIDV4 } from "sequelize";
+import { DataTypes } from "sequelize";
 
 export default (sequelize) => {
   const User = sequelize.define("User", {
@@ -18,6 +18,10 @@ export default (sequelize) => {
     emailHash: {
       type: DataTypes.STRING,
       allowNull: false
+    },
+    chat: {
+      type: DataTypes.ENUM("active", "inactive"),
+      defaultValue: "inactive"
     },
     createdAt: {
       type: DataTypes.DATE,

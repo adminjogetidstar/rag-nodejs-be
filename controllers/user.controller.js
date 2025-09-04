@@ -2,12 +2,12 @@ import { RoleModel, UserModel, UserRoleModel } from "../models/index.js";
 import { decrypt } from "../utils/encryption_util.js";
 
 const putUser = async (req, res) => {
-  const { userId, roleId } = req.body;
+  const { userId, roleId, chat } = req.body;
 
-  if (!userId || !roleId) {
+  if (!userId || !roleId || !chat) {
     return res.status(400).json({
       success: false,
-      message: "Id and roleId are required"
+      message: "userId, roleId, and chat are required"
     });
   }
 
@@ -26,6 +26,14 @@ const putUser = async (req, res) => {
     if (userId !== undefined) updateData.userId = userId;
     if (roleId !== undefined) updateData.roleId = roleId;
 
+    const updateDataUser = {}
+    if (chat !== undefined) updateDataUser.chat = chat;
+
+    await UserModel.update(
+      updateDataUser,
+      {  where: { id: userId } }
+    )
+
     await UserRoleModel.update(
       updateData, 
       { where: { userId: userId } }
@@ -40,6 +48,7 @@ const putUser = async (req, res) => {
       name: user.name,
       roleId: userRole.roleId,
       role: role.name,
+      chat: user.chat,
       createdAt: userRole.createdAt,
       updatedAt: userRole.updatedAt
     }
@@ -81,6 +90,7 @@ const getUsers = async (req, res) => {
         name: user.name,
         roleId: user.UserRole.roleId,
         role: user.UserRole.Role.name,
+        chat: user.chat,
         createdAt: user.UserRole.createdAt,
         updatedAt: user.UserRole.updatedAt
       };

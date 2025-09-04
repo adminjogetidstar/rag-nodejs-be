@@ -56,7 +56,8 @@ const getJwtFromGoogle = async (req, res) => {
                 name: user.name,
                 picture,
                 roleId: user.UserRole ? user.UserRole.roleId : userRole.roleId,
-                role: user.UserRole ? user.UserRole.Role.name : roleUser.name
+                role: user.UserRole ? user.UserRole.Role.name : roleUser.name,
+                chat: user.chat
             },
             JWT_SECRET,
             { expiresIn: '2h' }
@@ -86,6 +87,7 @@ const getUserInfo = async (req, res) => {
         picture,
         roleId,
         role,
+        chat,
         iat,
         exp
     } = req.user;
@@ -100,6 +102,7 @@ const getUserInfo = async (req, res) => {
                 picture,
                 roleId,
                 role,
+                chat,
                 iat,
                 exp
             },

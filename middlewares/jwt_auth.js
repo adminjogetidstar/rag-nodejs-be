@@ -10,7 +10,7 @@ const jwtAuth = async (req, res, next) => {
 
   let isJwtValid = false;
 
-  if (authHeader && authHeader.startsWith("Bearer ")) {
+  if (authHeader?.startsWith("Bearer ")) {
     const token = authHeader.split(" ")[1];
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
