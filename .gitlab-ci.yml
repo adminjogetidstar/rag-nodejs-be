@@ -1,0 +1,47 @@
+stages:
+  - build_docker
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+  IMAGE_NAME: adminjogetids/rag-backend
+
+before_script:
+  - echo "🚀 Start CI/CD pipeline"
+
+# Stage 1: Build & Push Docker Image
+docker_build:
+  stage: build_docker
+  image: docker:24.0.5
+  services:
+    - docker:dind
+  script:
+    - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+    - docker build -t $IMAGE_NAME:latest .
+    - docker push $IMAGE_NAME:latest
+  only:
+    - main
+
+# Stage 2: Deploy ke VPS dengan docker-compose
+deploy_vps:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - eval $(ssh-agent -s)
+    - ssh-add ~/.ssh/id_rsa
+  script:
+    - echo "🔑 Deploying to VPS"
+    - |
+      ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "
+        cd ~/project/ai-rag &&
+        echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin &&
+        docker pull $IMAGE_NAME:latest &&
+        docker compose up -d backend
+      "
+  after_script:
+    - echo "✅ Deploy finished"
+  allow_failure: false
