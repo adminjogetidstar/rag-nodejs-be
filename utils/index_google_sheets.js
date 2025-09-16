@@ -26,7 +26,7 @@ async function getSpreadsheetsFromFolder(folderId) {
   return res.data.files || [];
 }
 
-async function loadSheetRows(spreadsheetId, fileName, sheetName = "Sheet1") {
+export async function loadSheetRows(spreadsheetId, fileName, sheetName = "Sheet1") {
   const sheets = google.sheets("v4");
 
   const res = await sheets.spreadsheets.values.get({
@@ -89,7 +89,7 @@ async function markRowsAsIndexed(docs) {
   }
 }
 
-async function indexDocsInBatches(collection, docs, embedder, batchSize = 50) {
+export async function indexDocsInBatches(collection, docs, embedder, batchSize = 50) {
   for (let i = 0; i < docs.length; i += batchSize) {
     const batch = docs.slice(i, i + batchSize);
 

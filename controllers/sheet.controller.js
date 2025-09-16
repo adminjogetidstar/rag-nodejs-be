@@ -2,6 +2,7 @@ import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { ChromaClient } from "chromadb";
 import dotenv from "dotenv";
 import indexSheetsInFolder from "../utils/index_google_sheets.js";
+import indexSelectedFiles from "../utils/index_selected_files.js";
 
 dotenv.config();
 
@@ -54,7 +55,7 @@ const indexSheets = async (req, res) => {
         geminiEmbeddings
       );
     }
-    
+
     if (status === 0) {
       return res.status(400).json({
         success: false,
