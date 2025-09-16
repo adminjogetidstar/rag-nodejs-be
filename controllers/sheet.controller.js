@@ -19,15 +19,21 @@ const chromaClient = new ChromaClient({
 });
 
 const indexSheets = async (req, res) => {
-  const { clearAll } = req.body || { clearAll: false };
+  const { clearAll, fileIds } = req.body || { clearAll: false };
 
   try {
     if (clearAll) {
       try {
-        await chromaClient.deleteCollection({ name: process.env.COLLECTION_NAME });
-        console.log(`Flushed existing collection: ${process.env.COLLECTION_NAME}`);
+        await chromaClient.deleteCollection({
+          name: process.env.COLLECTION_NAME,
+        });
+        console.log(
+          `Flushed existing collection: ${process.env.COLLECTION_NAME}`
+        );
       } catch (err) {
-        console.warn(`No existing collection found or delete failed: ${err.message}`);
+        console.warn(
+          `No existing collection found or delete failed: ${err.message}`
+        );
       }
     }
 
@@ -36,25 +42,37 @@ const indexSheets = async (req, res) => {
       name: process.env.COLLECTION_NAME,
     });
 
-    const status = await indexSheetsInFolder(process.env.GOOGLE_DRIVE_DIR_ID, collection, geminiEmbeddings);
+    let status;
+    if (fileIds && fileIds.length > 0) {
+      // Index file tertentu
+      status = await indexSelectedFiles(fileIds, collection, geminiEmbeddings);
+    } else {
+      // Index semua file di folder
+      status = await indexSheetsInFolder(
+        process.env.GOOGLE_DRIVE_DIR_ID,
+        collection,
+        geminiEmbeddings
+      );
+    }
+    
     if (status === 0) {
       return res.status(400).json({
         success: false,
-        message: "No spreadsheets found in the specified folder."
+        message: "No spreadsheets found in the specified folder.",
       });
     }
 
     res.json({
       success: true,
-      message: "Documents successfully indexed into Chroma!"
+      message: "Documents successfully indexed into Chroma!",
     });
   } catch (err) {
     console.error("Error during POST /sheets", err);
     res.status(500).json({
       success: false,
-      message: "Something went wrong."
+      message: "Something went wrong.",
     });
   }
-}
+};
 
 export { indexSheets };
