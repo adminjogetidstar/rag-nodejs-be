@@ -105,6 +105,7 @@ const deleteCollections = async (req, res) => {
   const dir = path.join(process.cwd(), DIR_NAME);
   
   try {
+    console.log(dir);
     if (!fs.existsSync(dir)) {
       return res.status(404).json({
         success: false,
