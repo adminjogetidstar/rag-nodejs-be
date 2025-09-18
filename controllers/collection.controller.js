@@ -4,6 +4,7 @@ import path from "path";
 import indexFile from "../utils/index_file.js";
 import dotenv from "dotenv";
 import { FileModel } from "../models/index.js";
+import { removeIndexedSuffixFromFiles } from "../utils/drive_helpers.js";
 
 dotenv.config();
 
@@ -105,7 +106,6 @@ const deleteCollections = async (req, res) => {
   const dir = path.join(process.cwd(), DIR_NAME);
   
   try {
-    console.log(dir);
     if (!fs.existsSync(dir)) {
       return res.status(404).json({
         success: false,
@@ -127,6 +127,11 @@ const deleteCollections = async (req, res) => {
     } catch (err) {
       console.warn(`No existing collection found or delete failed: ${err.message}`);
     }
+
+    const renamedCount = await removeIndexedSuffixFromFiles(
+      process.env.GOOGLE_DRIVE_DIR_ID
+    );
+    console.log(`Restored ${renamedCount} files back to original names`);
 
     res.json({
       success: true,

@@ -3,6 +3,7 @@ import { ChromaClient } from "chromadb";
 import dotenv from "dotenv";
 import indexSheetsInFolder from "../utils/index_google_sheets.js";
 import indexSelectedFiles from "../utils/index_selected_files.js";
+import { removeIndexedSuffixFromFiles } from "../utils/drive_helpers.js";
 
 dotenv.config();
 
@@ -36,6 +37,10 @@ const indexSheets = async (req, res) => {
           `No existing collection found or delete failed: ${err.message}`
         );
       }
+      const renamedCount = await removeIndexedSuffixFromFiles(
+        process.env.GOOGLE_DRIVE_DIR_ID
+      );
+      console.log(`Restored ${renamedCount} files back to original names`);
     }
 
     // collection
