@@ -18,7 +18,7 @@ export const getDriveFiles = async (req, res) => {
       q: `'${process.env.GOOGLE_DRIVE_DIR_ID}' in parents and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`,
       fields: "files(id, name, mimeType, createdTime, modifiedTime)",
     });
-    // test
+    // testing
     res.json({
       success: true,
       files: response.data.files || [],
