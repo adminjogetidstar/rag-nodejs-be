@@ -7,7 +7,7 @@ const postAsk = async (req, res) => {
   try {
     const user = req.user;
     const { question, images = [] } = req.body;
-
+    console.log(images);
     if (user?.chat === "inactive") {
       return res.status(403).json({
         success: false,

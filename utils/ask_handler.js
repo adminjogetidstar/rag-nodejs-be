@@ -5,7 +5,7 @@ import {
 import { ChromaClient } from "chromadb";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
-
+import { HumanMessage } from "@langchain/core/messages";
 dotenv.config();
 
 const geminiLlm = new ChatGoogleGenerativeAI({
@@ -100,7 +100,7 @@ const askHandler = async (question, userId, images) => {
     }));
 
     const combined = allMatches
-      .sort((a, b) => a.distance - b.distance)
+      .toSorted((a, b) => a.distance - b.distance)
       .slice(0, 100);
 
     // --- Bangun konteks dari dokumen ---
@@ -150,21 +150,24 @@ const askHandler = async (question, userId, images) => {
         `;
     console.log("Prompt:", prompt);
 
-    // --- Kirim ke Gemini ---
-    const messages = [
-      {
-        role: "user",
-        content: [
-          { type: "text", text: prompt },
-          ...images.map((img) => ({
-            type: "image_url",
-            image_url: `data:image/png;base64,${img}`,
-          })),
-        ],
-      },
-    ];
+    // --- Bangun pesan untuk Gemini ---
+    const contents = [{ type: "text", text: prompt }];
 
-    const result = await geminiLlm.invoke(messages);
+    if (images && images.length > 0) {
+      contents.push(
+        ...images.map((img) => ({
+          type: "image_url",
+          image_url: `data:image/png;base64,${img}`,
+        }))
+      );
+    }
+
+    const messages = new HumanMessage({
+      role: "user",
+      content: contents,
+    });
+
+    const result = await geminiLlm.invoke([messages]);
 
     // Gemini result bisa array atau string → normalize
     let answer = "";
