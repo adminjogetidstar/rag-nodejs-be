@@ -142,7 +142,14 @@ const askHandler = async (question, userId, images) => {
     const finalQuestion = maskQuestionIfNeeded(question, globalValueMap);
 
     const prompt = `
-        Jawablah pertanyaan di bawah ini hanya berdasarkan informasi dari dokumen yang disediakan.
+        Jawablah pertanyaan di bawah ini hanya berdasarkan informasi dari dokumen yang disediakan ${
+          images.length > 0
+            ? `
+        Selain itu, analisis juga gambar yang dilampirkan untuk memberikan jawaban yang lebih akurat dan lengkap.
+        Jika isi dokumen tidak cukup, gunakan informasi dari gambar sebagai referensi tambahan.
+        `
+            : ""
+        }.
         Jika informasi yang ditanyakan tidak ada di dalam dokumen, berikan jawaban yang sopan dan membantu, misalnya
         - Memberitahukan informasi apa yang tersedia dalam dokumen.
         - Menyampaikan keterbatasan dengan ramah.
@@ -155,12 +162,8 @@ const askHandler = async (question, userId, images) => {
     console.log("Prompt:", prompt);
 
     let answer = "";
-    
+
     if (images.length > 0) {
-      prompt += `
-        Selain itu, analisis juga gambar yang dilampirkan untuk memberikan jawaban yang lebih akurat dan lengkap.
-        Jika isi dokumen tidak cukup, gunakan informasi dari gambar sebagai referensi tambahan.
-        `;
       // === Mode multimodal pakai GoogleGenerativeAI ===
       const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
