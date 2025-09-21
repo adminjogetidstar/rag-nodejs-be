@@ -6,6 +6,8 @@ import { ChromaClient } from "chromadb";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
 import { HumanMessage } from "@langchain/core/messages";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 dotenv.config();
 
 const geminiLlm = new ChatGoogleGenerativeAI({
@@ -18,6 +20,8 @@ const geminiEmbeddings = new GoogleGenerativeAIEmbeddings({
   modelName: "gemini-embedding-001",
   apiKey: process.env.GEMINI_API_KEY,
 });
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const chromaClient = new ChromaClient({
   host: process.env.CHROMA_HOST,
@@ -150,34 +154,40 @@ const askHandler = async (question, userId, images) => {
         `;
     console.log("Prompt:", prompt);
 
-    // --- Bangun pesan untuk Gemini ---
-    const contents = [{ type: "text", text: prompt }];
+    if (images.length > 0) {
+      prompt += `
+        Selain itu, analisis juga gambar yang dilampirkan untuk memberikan jawaban yang lebih akurat dan lengkap.
+        Jika isi dokumen tidak cukup, gunakan informasi dari gambar sebagai referensi tambahan.
+        `;
+      // === Mode multimodal pakai GoogleGenerativeAI ===
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    if (images && images.length > 0) {
-      contents.push(
-        ...images.map((img) => ({
-          type: "image_url",
-          image_url: `data:image/png;base64,${img}`,
-        }))
-      );
-    }
+      const parts = [{ text: prompt }];
 
-    const messages = new HumanMessage({
-      role: "user",
-      content: contents,
-    });
+      for (const img of images) {
+        parts.push({
+          inlineData: {
+            data: img.replace(/^data:image\/\w+;base64,/, ""), // hapus prefix base64
+            mimeType: "image/png", // bisa deteksi mime type sesuai upload
+          },
+        });
+      }
 
-    const result = await geminiLlm.invoke([messages]);
-
-    // Gemini result bisa array atau string → normalize
-    let answer = "";
-    if (Array.isArray(result.content)) {
-      answer = result.content
-        .map((c) => c.text ?? "")
-        .join(" ")
-        .trim();
+      const result = await model.generateContent(parts);
+      answer = result.response.text();
     } else {
-      answer = result.content?.toString().trim() ?? "";
+      // === Mode teks-only pakai LangChain ===
+      const messages = new HumanMessage({ role: "user", content: prompt });
+      const result = await geminiLlm.invoke([messages]);
+
+      if (Array.isArray(result.content)) {
+        answer = result.content
+          .map((c) => c.text ?? "")
+          .join(" ")
+          .trim();
+      } else {
+        answer = result.content?.toString().trim() ?? "";
+      }
     }
 
     if (MASK) {
