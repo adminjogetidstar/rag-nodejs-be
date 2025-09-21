@@ -154,6 +154,8 @@ const askHandler = async (question, userId, images) => {
         `;
     console.log("Prompt:", prompt);
 
+    let answer = "";
+    
     if (images.length > 0) {
       prompt += `
         Selain itu, analisis juga gambar yang dilampirkan untuk memberikan jawaban yang lebih akurat dan lengkap.
