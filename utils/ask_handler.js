@@ -141,20 +141,29 @@ const askHandler = async (question, userId, images) => {
     const finalQuestion = maskQuestionIfNeeded(question, globalValueMap);
 
     const prompt = `
-      Jawablah pertanyaan di bawah ini dengan aturan berikut:
+      Anda adalah asisten AI yang membantu menjawab pertanyaan pengguna berdasarkan dokumen yang tersedia, serta dapat menganalisis gambar jika ada yang dilampirkan.
 
-      1. **Prioritas utama:** Gunakan informasi yang tersedia di dalam dokumen untuk menjawab.
-      2. Jika ada gambar terlampir, analisis juga gambar tersebut untuk melengkapi jawaban dari dokumen.
-      3. Jika jawaban tidak sepenuhnya tersedia di dalam dokumen maupun gambar:
-        - Katakan dengan sopan bahwa informasi tidak ditemukan di dokumen.
-        - Tambahkan jawaban alternatif berdasarkan pengetahuan Anda sebagai AI.
-        - Berikan sumber rujukan atau langkah lanjutan yang relevan (misalnya dokumen resmi, website terpercaya, atau kata kunci pencarian).
+      Ikuti aturan berikut:
+      1. **Utamakan dokumen:** Jawaban harus memanfaatkan informasi dari dokumen yang disediakan.
+      2. **Gunakan gambar jika ada:** Jika ada gambar terlampir, analisislah dan kombinasikan dengan informasi dari dokumen.
+      3. **Jika informasi tidak lengkap:** 
+        - Katakan dengan sopan bahwa informasi tidak ditemukan sepenuhnya dalam dokumen atau gambar.
+        - Lengkapi jawaban dengan pengetahuan Anda sebagai AI.
+        - Sertakan sumber rujukan yang relevan (misalnya dokumen resmi, website terpercaya, atau kata kunci pencarian) agar pengguna bisa menelusuri lebih lanjut.
+      4. **Gaya jawaban:** Gunakan bahasa yang jelas, ringkas, informatif, dan bernada profesional seperti GPT.
 
-      Dokumen:
+      ---
+
+      📄 **Dokumen yang tersedia:**
       ${fullContext}
 
-      Pertanyaan:
+      ❓ **Pertanyaan pengguna:**
       ${finalQuestion}
+
+      💡 **Instruksi tambahan:**
+      - Susun jawaban dengan penjelasan yang runtut dan mudah dipahami.
+      - Jika memungkinkan, berikan poin-poin atau langkah-langkah praktis.
+      - Jangan hanya mengulang isi dokumen, tetapi rangkum dan jelaskan konteksnya agar mudah dipahami pengguna.
       `;
     console.log("Prompt:", prompt);
 
