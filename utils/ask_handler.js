@@ -143,15 +143,31 @@ const askHandler = async (question, userId, images) => {
     const prompt = `
       Jawablah pertanyaan di bawah ini dengan aturan berikut:
 
-      1. **Prioritas utama:** Gunakan informasi yang tersedia di dalam dokumen untuk menjawab.
-      2. Jika ada gambar terlampir, analisis juga gambar tersebut untuk melengkapi jawaban dari dokumen.
-      3. Jika jawaban tidak sepenuhnya tersedia di dalam dokumen maupun gambar:
-        - Katakan dengan sopan bahwa informasi tidak ditemukan di dokumen.
-        - Tambahkan jawaban alternatif berdasarkan pengetahuan Anda sebagai AI.
-        - Berikan sumber rujukan atau langkah lanjutan yang relevan (misalnya dokumen resmi, website terpercaya, atau kata kunci pencarian).
-      4. Bedakan dengan jelas bagian jawaban yang berasal dari dokumen dan bagian tambahan dari luar dokumen dengan format berikut:
-        - **Berdasarkan dokumen:** ... (isi jawaban dari dokumen dan/atau gambar)
-        - **Tambahan dari luar dokumen:** ... (isi jawaban alternatif, saran, atau sumber lain)
+      1. **Utamakan dokumen**:
+        - Gunakan informasi dari dokumen yang disediakan sebagai jawaban utama.
+        - Jika informasi ada, jawab hanya berdasarkan dokumen.
+
+      2. **Analisis gambar jika ada**:
+        - Jika user melampirkan gambar, gunakan analisis gambar sebagai pelengkap jawaban dokumen.
+        - Jika informasi dari gambar tidak ditemukan di dokumen, sampaikan dengan jelas bahwa informasi tersebut hanya berasal dari gambar.
+
+      3. **Fallback jika tidak tersedia**:
+        - Jika informasi yang diminta tidak ada di dokumen maupun gambar, jawab dengan sopan bahwa informasi tersebut tidak tersedia di dokumen/gambar.
+        - Tambahkan jawaban alternatif dari pengetahuan Anda sebagai AI.
+        - Berikan saran sumber rujukan atau langkah lanjutan yang relevan (misalnya situs resmi, website terpercaya, atau kata kunci pencarian).
+
+      4. **Gunakan format jawaban berikut secara konsisten**:
+
+      📝 **Berdasarkan dokumen:**  
+      (jawab dari isi dokumen)
+
+      🖼️ **Berdasarkan gambar:**  
+      (jawab dari analisis gambar jika ada)
+
+      🌍 **Tambahan dari luar dokumen:**  
+      (jawaban alternatif dari pengetahuan AI atau sumber lain)
+
+      ---
 
       Dokumen:
       ${fullContext}
@@ -159,6 +175,7 @@ const askHandler = async (question, userId, images) => {
       Pertanyaan:
       ${finalQuestion}
       `;
+
     console.log("Prompt:", prompt);
 
     let answer = "";
