@@ -77,9 +77,23 @@ const webhookHandler = async (req, res) => {
 
     // Periksa expired based on updatedAt (fallback ke createdAt jika perlu)
     const now = moment();
-    const updatedAtMoment = phone.updatedAt
-      ? moment(phone.updatedAt)
-      : moment(phone.createdAt || undefined);
+
+    let updatedAtMoment;
+    if (phone.updatedAt) {
+      updatedAtMoment = moment(phone.updatedAt, moment.ISO_8601, true);
+      if (!updatedAtMoment.isValid()) {
+        // fallback ke format umum (M/D/YYYY, h:mm:ss A)
+        updatedAtMoment = moment(phone.updatedAt, "M/D/YYYY, h:mm:ss A");
+      }
+    } else if (phone.createdAt) {
+      updatedAtMoment = moment(phone.createdAt, moment.ISO_8601, true);
+      if (!updatedAtMoment.isValid()) {
+        updatedAtMoment = moment(phone.createdAt, "M/D/YYYY, h:mm:ss A");
+      }
+    } else {
+      updatedAtMoment = now; // fallback jika dua-duanya tidak ada
+    }
+
     const diffDays = now.diff(updatedAtMoment, "days");
 
     if (diffDays > EXPIRED_DAYS) {
@@ -115,7 +129,7 @@ const webhookHandler = async (req, res) => {
         images = [base64Img];
       }
     }
-    
+
     const result = await askHandler(question, userId, images);
     const finalAnswer =
       result?.answer ??
