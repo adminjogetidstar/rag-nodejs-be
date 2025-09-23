@@ -15,17 +15,16 @@ const BASE_URL = process.env.WHAPIFY_BASE_URL;
 const EXPIRED_DAYS = parseInt(process.env.EXPIRED_DAYS ?? "30", 10);
 
 async function sendWhatsapp(recipient, message) {
-  const formData = new FormData();
-  formData.append("secret", API_KEY);
-  formData.append("account", ID);
-  formData.append("recipient", recipient);
-  formData.append("type", "text");
-  formData.append("message", message);
+  const form = new FormData();
+  form.append("secret", API_KEY);
+  form.append("account", ID);
+  form.append("recipient", recipient);
+  form.append("type", "text");
+  form.append("message", message);
+  console.log('message di kirim : ' + message);
 
   const url = `${BASE_URL}/send/whatsapp`;
-  const headers = formData.getHeaders();
-
-  const response = await axios.post(url, formData, { headers });
+  const response = await axios.post(url, form, { headers: form.getHeaders() });
   console.log(response);
   return response;
 }
@@ -63,18 +62,26 @@ const webhookHandler = async (req, res) => {
         console.log("Sent: not-registered response");
         return res.status(response.status).send(response.data);
       } catch (err) {
-        console.error("Error sending not-registered message:", err?.response?.data ?? err.message);
+        console.error(
+          "Error sending not-registered message:",
+          err?.response?.data ?? err.message
+        );
         return res.status(500).send("Something went wrong");
       }
     }
 
     // Periksa expired based on updatedAt (fallback ke createdAt jika perlu)
     const now = moment();
-    const updatedAtMoment = phone.updatedAt ? moment(phone.updatedAt) : moment(phone.createdAt || undefined);
+    const updatedAtMoment = phone.updatedAt
+      ? moment(phone.updatedAt)
+      : moment(phone.createdAt || undefined);
     const diffDays = now.diff(updatedAtMoment, "days");
 
     if (diffDays > EXPIRED_DAYS) {
-      await PhoneModel.update({ status: "inactive" }, { where: { id: phone.id } });
+      await PhoneModel.update(
+        { status: "inactive" },
+        { where: { id: phone.id } }
+      );
       phone = await PhoneModel.findOne({ where: { numberHash: hashNumber } });
     }
 
@@ -87,22 +94,32 @@ const webhookHandler = async (req, res) => {
         console.log("Sent: inactive response");
         return res.status(response.status).send(response.data);
       } catch (err) {
-        console.error("Error sending inactive message:", err?.response?.data ?? err.message);
+        console.error(
+          "Error sending inactive message:",
+          err?.response?.data ?? err.message
+        );
         return res.status(500).send("Something went wrong");
       }
     }
 
     // Jika semua OK, panggil askHandler (beri attachments kalau ada)
-    const attachments = Array.isArray(body.data?.attachments) ? body.data.attachments : [];
+    const attachments = Array.isArray(body.data?.attachments)
+      ? body.data.attachments
+      : [];
     const result = await askHandler(question, userId, attachments);
-    const finalAnswer = result?.answer ?? "Maaf, terjadi kesalahan saat memproses pertanyaan Anda.";
+    const finalAnswer =
+      result?.answer ??
+      "Maaf, terjadi kesalahan saat memproses pertanyaan Anda.";
 
     try {
       const response = await sendWhatsapp(userId, finalAnswer);
       console.log("Sent: answer message");
       return res.status(response.status).send(response.data);
     } catch (err) {
-      console.error("Error sending answer message:", err?.response?.data ?? err.message);
+      console.error(
+        "Error sending answer message:",
+        err?.response?.data ?? err.message
+      );
       return res.status(500).send("Something went wrong");
     }
   } catch (err) {
@@ -122,7 +139,10 @@ const getSubscription = async (req, res) => {
 
     return res.status(response.status).send(response.data);
   } catch (err) {
-    console.error("Error Whapify getSubscription:", err?.response?.data ?? err.message);
+    console.error(
+      "Error Whapify getSubscription:",
+      err?.response?.data ?? err.message
+    );
     return res.status(500).send("Something went wrong");
   }
 };
