@@ -16,11 +16,10 @@ const EXPIRED_DAYS = parseInt(process.env.EXPIRED_DAYS);
 
 const webhookHandler = async (req, res) => {
   const body = req.body;
-
+  console.log(body);
   const secret = body.secret;
 
   if (secret && secret === WEBHOOK_SECRET && body.type === "whatsapp") {
-    const question = body.data.message;
     const userId = body.data.phone;
     const hashNumber = hashValue(userId);
 
@@ -49,44 +48,6 @@ const webhookHandler = async (req, res) => {
         console.error("Error Whapify:", err);
         return res.status(500).send("Something went wrong");
       }
-    }
-
-    switch (body.data.type) {
-      case "text":
-        console.log(`[WA][${userId}] Text:`, body.data.message);
-        break;
-
-      case "image":
-        console.log(`[WA][${userId}] Image URL:`, body.data.media?.url);
-        if (body.data.media?.caption) {
-          console.log(`[WA][${userId}] Caption:`, body.data.media.caption);
-        }
-        break;
-
-      case "audio":
-      case "voice":
-        console.log(`[WA][${userId}] Voice/Audio URL:`, body.data.media?.url);
-        console.log(`[WA][${userId}] MIME Type:`, body.data.media?.mime_type);
-        break;
-
-      case "video":
-        console.log(`[WA][${userId}] Video URL:`, body.data.media?.url);
-        if (body.data.media?.caption) {
-          console.log(`[WA][${userId}] Caption:`, body.data.media.caption);
-        }
-        break;
-
-      case "document":
-        console.log(`[WA][${userId}] Document URL:`, body.data.media?.url);
-        console.log(`[WA][${userId}] File Name:`, body.data.media?.filename);
-        break;
-
-      default:
-        console.log(
-          `[WA][${userId}] Unsupported message type:`,
-          body.data.type
-        );
-        break;
     }
 
     const now = moment();
@@ -122,7 +83,30 @@ const webhookHandler = async (req, res) => {
       }
     }
 
-    const result = await askHandler(question, userId);
+    let question = "";
+    switch (body.data.type) {
+      case "text":
+        console.log(`[WA][${userId}] Text:`, body.data.message);
+        question = body.data.message;
+        break;
+
+      case "image":
+        console.log(`[WA][${userId}] Image URL:`, body.data.media?.url);
+        if (body.data.media?.caption) {
+          console.log(`[WA][${userId}] Caption:`, body.data.media.caption);
+          question = body.data.message;
+        }
+        break;
+
+      default:
+        console.log(
+          `[WA][${userId}] Unsupported message type:`,
+          body.data.type
+        );
+        break;
+    }
+
+    const result = await askHandler(question, userId, []);
     formData.append("message", result.answer);
 
     try {
