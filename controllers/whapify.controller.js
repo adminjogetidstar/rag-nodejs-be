@@ -15,17 +15,21 @@ const BASE_URL = process.env.WHAPIFY_BASE_URL;
 const EXPIRED_DAYS = parseInt(process.env.EXPIRED_DAYS ?? "30", 10);
 
 async function sendWhatsapp(recipient, message) {
+  const normalizedRecipient = recipient.startsWith("+")
+    ? recipient.slice(1)
+    : recipient;
+
   const form = new FormData();
   form.append("secret", API_KEY);
   form.append("account", ID);
-  form.append("recipient", recipient);
+  form.append("recipient", normalizedRecipient);
   form.append("type", "text");
   form.append("message", message);
-  console.log('message di kirim : ' + message);
+  console.log("message di kirim : " + message);
 
   const url = `${BASE_URL}/send/whatsapp`;
   const response = await axios.post(url, form, { headers: form.getHeaders() });
-  console.log(response);
+  console.log(response.data);
   return response;
 }
 
