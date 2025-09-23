@@ -20,6 +20,7 @@ const webhookHandler = async (req, res) => {
   const secret = body.secret;
 
   if (secret && secret === WEBHOOK_SECRET && body.type === "whatsapp") {
+    console.log("masuk kondisi if");
     const question = body.data.message;
     const userId = body.data.phone;
     const hashNumber = hashValue(userId);
@@ -43,7 +44,7 @@ const webhookHandler = async (req, res) => {
         const response = await axios.post(url, formData, {
           headers: formData.getHeaders(),
         });
-
+        console.log("ngirim response ga terdaftar");
         return res.status(response.status).send(response.data);
       } catch (err) {
         console.error("Error Whapify:", err);
@@ -76,7 +77,7 @@ const webhookHandler = async (req, res) => {
         const response = await axios.post(url, formData, {
           headers: formData.getHeaders(),
         });
-
+        console.log("ngirim response ga aktif");
         return res.status(response.status).send(response.data);
       } catch (err) {
         console.error("Error Whapify:", err);
