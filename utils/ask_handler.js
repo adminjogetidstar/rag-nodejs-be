@@ -87,6 +87,7 @@ const askHandler = async (question, userId, images) => {
 
     const collection = await chromaClient.getCollection({
       name: process.env.COLLECTION_NAME,
+      embeddingFunction: geminiEmbeddings,
     });
 
     const manual = await collection.query({
@@ -168,6 +169,7 @@ const askHandler = async (question, userId, images) => {
     console.log("Prompt:", prompt);
 
     let answer = "";
+
 
     if (images.length > 0) {
       // === Mode multimodal pakai GoogleGenerativeAI ===

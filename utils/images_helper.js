@@ -1,3 +1,4 @@
+import axios from "axios";
 export const fetchImageAsBase64 = async (url) => {
   try {
     const response = await axios.get(url, { responseType: "arraybuffer" });
