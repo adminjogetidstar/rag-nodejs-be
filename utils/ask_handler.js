@@ -149,9 +149,6 @@ const askHandler = async (question, userId, images) => {
         - Katakan dengan sopan bahwa informasi tidak ditemukan di dokumen.
         - Tambahkan jawaban alternatif berdasarkan pengetahuan Anda sebagai AI.
         - Berikan sumber rujukan atau langkah lanjutan yang relevan (misalnya dokumen resmi, website terpercaya, atau kata kunci pencarian).
-      4. Bedakan dengan jelas bagian jawaban yang berasal dari dokumen dan bagian tambahan dari luar dokumen dengan format berikut:
-        - **Berdasarkan dokumen:** ... (isi jawaban dari dokumen dan/atau gambar)
-        - **Tambahan dari luar dokumen:** ... (isi jawaban alternatif, saran, atau sumber lain)
 
       Dokumen:
       ${fullContext}
