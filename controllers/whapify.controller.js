@@ -108,8 +108,14 @@ const webhookHandler = async (req, res) => {
     }
 
     // Jika semua OK, panggil askHandler (beri attachments kalau ada)
-    const images = [fetchImageAsBase64(body.data?.attachment)];
-
+    let images = [];
+    if (body.data?.attachment) {
+      const base64Img = await fetchImageAsBase64(body.data.attachment);
+      if (base64Img) {
+        images = [base64Img];
+      }
+    }
+    
     const result = await askHandler(question, userId, images);
     const finalAnswer =
       result?.answer ??
