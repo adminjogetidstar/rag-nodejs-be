@@ -5,6 +5,7 @@ import axios from "axios";
 import moment from "moment-timezone";
 import { hashValue } from "../utils/encryption_util.js";
 import { PhoneModel } from "../models/index.js";
+import { fetchImageAsBase64 } from "../utils/images_helper.js";
 
 dotenv.config();
 
@@ -107,10 +108,9 @@ const webhookHandler = async (req, res) => {
     }
 
     // Jika semua OK, panggil askHandler (beri attachments kalau ada)
-    const attachments = Array.isArray(body.data?.attachments)
-      ? body.data.attachments
-      : [];
-    const result = await askHandler(question, userId, attachments);
+    const images = [fetchImageAsBase64(body.data?.attachment)];
+
+    const result = await askHandler(question, userId, images);
     const finalAnswer =
       result?.answer ??
       "Maaf, terjadi kesalahan saat memproses pertanyaan Anda.";
