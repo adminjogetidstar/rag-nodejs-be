@@ -26,6 +26,7 @@ async function sendWhatsapp(recipient, message) {
   const headers = formData.getHeaders();
 
   const response = await axios.post(url, formData, { headers });
+  console.log(response);
   return response;
 }
 
