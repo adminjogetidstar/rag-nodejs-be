@@ -20,6 +20,7 @@ const webhookHandler = async (req, res) => {
   const secret = body.secret;
 
   if (secret && secret === WEBHOOK_SECRET && body.type === "whatsapp") {
+    const question = body.data.message;
     const userId = body.data.phone;
     const hashNumber = hashValue(userId);
 
@@ -81,29 +82,6 @@ const webhookHandler = async (req, res) => {
         console.error("Error Whapify:", err);
         return res.status(500).send("Something went wrong");
       }
-    }
-
-    let question = "";
-    switch (body.data.type) {
-      case "text":
-        console.log(`[WA][${userId}] Text:`, body.data.message);
-        question = body.data.message;
-        break;
-
-      case "image":
-        console.log(`[WA][${userId}] Image URL:`, body.data.media?.url);
-        if (body.data.media?.caption) {
-          console.log(`[WA][${userId}] Caption:`, body.data.media.caption);
-          question = body.data.message;
-        }
-        break;
-
-      default:
-        console.log(
-          `[WA][${userId}] Unsupported message type:`,
-          body.data.type
-        );
-        break;
     }
 
     const result = await askHandler(question, userId, []);
