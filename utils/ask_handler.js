@@ -31,7 +31,6 @@ const chromaClient = new ChromaClient({
 
 const MASK = false;
 
-// fungsi kecil buat escape regex
 const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&");
 
 const mask = (obj, globalValueMap = {}) => {
@@ -142,23 +141,24 @@ const askHandler = async (question, userId, images) => {
     const finalQuestion = maskQuestionIfNeeded(question, globalValueMap);
 
     const prompt = `
-        Jawablah pertanyaan di bawah ini hanya berdasarkan informasi dari dokumen yang disediakan ${
-          images.length > 0
-            ? `
-        Selain itu, analisis juga gambar yang dilampirkan untuk memberikan jawaban yang lebih akurat dan lengkap.
-        Jika isi dokumen tidak cukup, gunakan informasi dari gambar sebagai referensi tambahan.
-        `
-            : ""
-        }.
-        Jika informasi yang ditanyakan tidak ada di dalam dokumen, berikan jawaban yang sopan dan membantu, misalnya
-        - Memberitahukan informasi apa yang tersedia dalam dokumen.
-        - Menyampaikan keterbatasan dengan ramah.
-        - Menyarankan sumber alternatif atau langkah lanjutan yang relevan.
-        Dokumen:
-        ${fullContext}
-        Pertanyaan:
-        ${finalQuestion}
-        `;
+      Jawablah pertanyaan di bawah ini dengan aturan berikut:
+
+      1. **Prioritas utama:** Gunakan informasi yang tersedia di dalam dokumen untuk menjawab.
+      2. Jika ada gambar terlampir, analisis juga gambar tersebut untuk melengkapi jawaban dari dokumen.
+      3. Jika jawaban tidak sepenuhnya tersedia di dalam dokumen maupun gambar:
+        - Katakan dengan sopan bahwa informasi tidak ditemukan di dokumen.
+        - Tambahkan jawaban alternatif berdasarkan pengetahuan Anda sebagai AI.
+        - Berikan sumber rujukan atau langkah lanjutan yang relevan (misalnya dokumen resmi, website terpercaya, atau kata kunci pencarian).
+      4. Bedakan dengan jelas bagian jawaban yang berasal dari dokumen dan bagian tambahan dari luar dokumen dengan format berikut:
+        - **Berdasarkan dokumen:** ... (isi jawaban dari dokumen dan/atau gambar)
+        - **Tambahan dari luar dokumen:** ... (isi jawaban alternatif, saran, atau sumber lain)
+
+      Dokumen:
+      ${fullContext}
+
+      Pertanyaan:
+      ${finalQuestion}
+      `;
     console.log("Prompt:", prompt);
 
     let answer = "";
@@ -172,8 +172,8 @@ const askHandler = async (question, userId, images) => {
       for (const img of images) {
         parts.push({
           inlineData: {
-            data: img.replace(/^data:image\/\w+;base64,/, ""), // hapus prefix base64
-            mimeType: "image/png", // bisa deteksi mime type sesuai upload
+            data: img.replace(/^data:image\/\w+;base64,/, ""),
+            mimeType: "image/png",
           },
         });
       }
