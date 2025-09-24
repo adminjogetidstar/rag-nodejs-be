@@ -1,8 +1,16 @@
+import fs from "fs";
+import path from "path";
 import PDFDocument from "pdfkit";
-import fs from "fs"
+
 export const generateCatalogPdf = async (catalogContent, title) => {
+  const dirPath = "./outputs";
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath);
+  }
+
+  const filePath = path.join(dirPath, `catalog_${title}.pdf`);
+
   const doc = new PDFDocument({ margin: 40 });
-  const filePath = `./outputs/catalog_${title}.pdf`;
   const stream = fs.createWriteStream(filePath);
   doc.pipe(stream);
 
@@ -18,5 +26,8 @@ export const generateCatalogPdf = async (catalogContent, title) => {
 
   doc.end();
 
-  return filePath;
+  return new Promise((resolve, reject) => {
+    stream.on("finish", () => resolve(filePath));
+    stream.on("error", reject);
+  });
 };
