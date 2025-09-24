@@ -152,12 +152,12 @@ const askHandler = async (question, userId, images) => {
         - Lengkapi jawaban dengan pengetahuan Anda sebagai AI.
         - Sertakan sumber rujukan yang relevan (misalnya dokumen resmi, website terpercaya, atau kata kunci pencarian) agar pengguna bisa menelusuri lebih lanjut.
       4. **Permintaan file khusus (PDF, Word, Excel, dsb.):**
-        - Jika pengguna meminta katalog atau jawaban dalam bentuk file tertentu, buat jawaban dalam **style konten yang sesuai format file tersebut**.
-        - Contoh:
-          - **PDF** → Jawaban rapi seperti katalog (judul, subjudul, poin, tabel ringkas).
-          - **Word (docx)** → Jawaban formal dengan struktur dokumen (heading, paragraf, bullet).
-          - **Excel (xlsx/ods)** → Jawaban berbentuk tabel dengan kolom dan baris yang jelas.
-          - **Text (txt/rtf)** → Jawaban sederhana berbentuk teks polos yang tetap mudah dibaca.
+        - Jika pengguna meminta jawaban dalam format file tertentu, buat jawaban dalam **style konten yang sesuai format file** dan hindari penggunaan syntax Markdown seperti #, ---, atau |.
+        - Gunakan teks yang rapi dan konsisten:
+          - **PDF** → Heading sederhana, daftar poin, tabel dalam format teks dengan jarak rata.
+          - **Word** → Struktur formal (judul, subjudul, paragraf, bullet).
+          - **Excel** → Output tabel baris-kolom dengan separator tab atau koma.
+          - **Text** → Teks polos terstruktur.
         - Backend akan otomatis mengubah jawaban ini menjadi format file yang diminta pengguna.
       5. **Gaya jawaban:** Gunakan bahasa yang jelas, ringkas, informatif, dan bernada profesional seperti GPT.
 
