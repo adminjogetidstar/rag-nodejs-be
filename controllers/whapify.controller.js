@@ -6,6 +6,7 @@ import moment from "moment-timezone";
 import { hashValue } from "../utils/encryption_util.js";
 import { PhoneModel } from "../models/index.js";
 import { fetchImageAsBase64 } from "../utils/images_helper.js";
+import { generateCatalogPdf } from "../utils/file_helper.js";
 
 dotenv.config();
 
@@ -15,7 +16,7 @@ const ID = process.env.WHAPIFY_ACCOUNT_UNIQUE_ID;
 const BASE_URL = process.env.WHAPIFY_BASE_URL;
 const EXPIRED_DAYS = parseInt(process.env.EXPIRED_DAYS ?? "30", 10);
 
-async function sendWhatsapp(recipient, message) {
+async function sendWhatsapp(recipient, message, type = "text", filePath = null) {
   const normalizedRecipient = recipient.startsWith("+")
     ? recipient.slice(1)
     : recipient;
@@ -24,13 +25,19 @@ async function sendWhatsapp(recipient, message) {
   form.append("secret", API_KEY);
   form.append("account", ID);
   form.append("recipient", normalizedRecipient);
-  form.append("type", "text");
-  form.append("message", message);
-  console.log("message di kirim : " + message);
+
+  if (type === "file" && filePath) {
+    form.append("type", "file");
+    form.append("file", require("fs").createReadStream(filePath));
+    form.append("caption", message ?? "");
+  } else {
+    form.append("type", "text");
+    form.append("message", message);
+  }
 
   const url = `${BASE_URL}/send/whatsapp`;
   const response = await axios.post(url, form, { headers: form.getHeaders() });
-  console.log(response.data);
+  console.log("Message sent:", response.data);
   return response;
 }
 
@@ -64,7 +71,6 @@ const webhookHandler = async (req, res) => {
           userId,
           "Nomor anda tidak terdaftar di sistem kami. Silakan hubungi admin untuk bantuan lebih lanjut."
         );
-        console.log("Sent: not-registered response");
         return res.status(response.status).send(response.data);
       } catch (err) {
         console.error(
@@ -75,14 +81,12 @@ const webhookHandler = async (req, res) => {
       }
     }
 
-    // Periksa expired based on updatedAt (fallback ke createdAt jika perlu)
+    // Cek expired subscription
     const now = moment();
-
     let updatedAtMoment;
     if (phone.updatedAt) {
       updatedAtMoment = moment(phone.updatedAt, moment.ISO_8601, true);
       if (!updatedAtMoment.isValid()) {
-        // fallback ke format umum (M/D/YYYY, h:mm:ss A)
         updatedAtMoment = moment(phone.updatedAt, "M/D/YYYY, h:mm:ss A");
       }
     } else if (phone.createdAt) {
@@ -91,11 +95,10 @@ const webhookHandler = async (req, res) => {
         updatedAtMoment = moment(phone.createdAt, "M/D/YYYY, h:mm:ss A");
       }
     } else {
-      updatedAtMoment = now; // fallback jika dua-duanya tidak ada
+      updatedAtMoment = now;
     }
 
     const diffDays = now.diff(updatedAtMoment, "days");
-
     if (diffDays > EXPIRED_DAYS) {
       await PhoneModel.update(
         { status: "inactive" },
@@ -110,7 +113,6 @@ const webhookHandler = async (req, res) => {
           userId,
           "Nomor anda sudah tidak aktif di sistem kami. Silakan hubungi admin untuk bantuan lebih lanjut."
         );
-        console.log("Sent: inactive response");
         return res.status(response.status).send(response.data);
       } catch (err) {
         console.error(
@@ -121,7 +123,7 @@ const webhookHandler = async (req, res) => {
       }
     }
 
-    // Jika semua OK, panggil askHandler (beri attachments kalau ada)
+    // === Ask AI ===
     let images = [];
     if (body.data?.attachment) {
       const base64Img = await fetchImageAsBase64(body.data.attachment);
@@ -129,21 +131,47 @@ const webhookHandler = async (req, res) => {
         images = [base64Img];
       }
     }
-
     const result = await askHandler(question, userId, images);
     const finalAnswer =
-      result?.answer ??
-      "Maaf, terjadi kesalahan saat memproses pertanyaan Anda.";
+      result?.answer ?? "Maaf, terjadi kesalahan saat memproses pertanyaan Anda.";
 
+    // === Tentukan format jawaban ===
+    const isPdfRequest = /pdf/i.test(question) || /katalog/i.test(question);
+    const isExcelRequest = /excel/i.test(question);
+
+    if (isPdfRequest) {
+      try {
+        const pdfPath = await generateCatalogPdf(finalAnswer, "Katalog Produk");
+        const response = await sendWhatsapp(
+          userId,
+          "Berikut katalog dalam format PDF:",
+          "file",
+          pdfPath
+        );
+        return res.status(response.status).send(response.data);
+      } catch (err) {
+        console.error("Error generating/sending PDF:", err);
+        return res.status(500).send("Failed to generate PDF");
+      }
+    } else if (isExcelRequest) {
+      try {
+        const response = await sendWhatsapp(
+          userId,
+          "Fitur export ke Excel belum tersedia."
+        );
+        return res.status(response.status).send(response.data);
+      } catch (err) {
+        console.error("Error sending excel message:", err);
+        return res.status(500).send("Something went wrong");
+      }
+    }
+
+    // === Default: kirim jawaban text ===
     try {
       const response = await sendWhatsapp(userId, finalAnswer);
-      console.log("Sent: answer message");
       return res.status(response.status).send(response.data);
     } catch (err) {
-      console.error(
-        "Error sending answer message:",
-        err?.response?.data ?? err.message
-      );
+      console.error("Error sending answer message:", err?.response?.data ?? err.message);
       return res.status(500).send("Something went wrong");
     }
   } catch (err) {
@@ -160,7 +188,6 @@ const getSubscription = async (req, res) => {
         "Content-Type": "application/json",
       },
     });
-
     return res.status(response.status).send(response.data);
   } catch (err) {
     console.error(
