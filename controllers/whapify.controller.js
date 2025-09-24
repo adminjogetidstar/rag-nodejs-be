@@ -148,7 +148,7 @@ const webhookHandler = async (req, res) => {
 
     if (isPdfRequest) {
       try {
-        const pdfPath = await generateCatalogPdf(finalAnswer, "Katalog Produk");
+        const pdfPath = await generateCatalogPdf(finalAnswer, "");
         const response = await sendWhatsapp(
           userId,
           "Berikut katalog dalam format PDF:",

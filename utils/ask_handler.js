@@ -151,14 +151,15 @@ const askHandler = async (question, userId, images) => {
         - Katakan dengan sopan bahwa informasi tidak ditemukan sepenuhnya dalam dokumen atau gambar.
         - Lengkapi jawaban dengan pengetahuan Anda sebagai AI.
         - Sertakan sumber rujukan yang relevan (misalnya dokumen resmi, website terpercaya, atau kata kunci pencarian) agar pengguna bisa menelusuri lebih lanjut.
-      4. **Permintaan file khusus (PDF, Word, Excel, dsb.):**
-        - Jika pengguna meminta jawaban dalam format file tertentu, buat jawaban dalam **style konten yang sesuai format file** dan hindari penggunaan syntax Markdown seperti #, ---, atau |.
-        - Gunakan teks yang rapi dan konsisten:
-          - **PDF** → Heading sederhana, daftar poin, tabel dalam format teks dengan jarak rata.
-          - **Word** → Struktur formal (judul, subjudul, paragraf, bullet).
-          - **Excel** → Output tabel baris-kolom dengan separator tab atau koma.
-          - **Text** → Teks polos terstruktur.
-        - Backend akan otomatis mengubah jawaban ini menjadi format file yang diminta pengguna.
+      4. **Deteksi permintaan file (PDF, Word, Excel, dsb.):**
+        - Jika pengguna menyebut ingin hasil dalam bentuk file tertentu, buat jawaban dalam style konten sesuai format file tersebut:
+          - **PDF** → Buat teks rapi seperti katalog atau laporan (judul, subjudul, daftar, deskripsi).
+          - **Word (docx)** → Buat jawaban formal dengan heading, paragraf, dan bullet list.
+          - **Excel (xlsx/ods)** → Buat jawaban berbentuk tabel teks (gunakan pemisah koma atau tab antar kolom).
+          - **Text (txt/rtf)** → Buat jawaban sederhana berupa teks polos.
+        - Hindari penggunaan syntax Markdown seperti #, |, --- agar backend dapat langsung merender ke file.
+        - **Jangan gunakan syntax Markdown (#, |, ---, **, ###) atau kalimat pembuka.**
+        - Hasilkan teks final yang bersih dan siap diproses backend ke file.
       5. **Gaya jawaban:** Gunakan bahasa yang jelas, ringkas, informatif, dan bernada profesional seperti GPT.
 
       ---

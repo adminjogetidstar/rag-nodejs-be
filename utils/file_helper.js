@@ -2,36 +2,40 @@ import fs from "fs";
 import path from "path";
 import PDFDocument from "pdfkit";
 
-export const generateCatalogPdf = async (catalogContent, title) => {
-  const dirPath = "./outputs";
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath);
-  }
+const cleanContent = (raw) => {
+  return raw
+    .replace(/[#*_`>]+/g, "")
+    .replace(/\|/g, " ")
+    .replace(/--+/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+};
 
-  const filePath = path.join(dirPath, `catalog_${title}.pdf`);
+export const generateCatalogPdf = async (content, title) => {
+  const dirPath = "./outputs";
+  if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath);
+
+  const filePath = path.join(dirPath, `document_${title}.pdf`);
 
   const doc = new PDFDocument({ margin: 40 });
   const stream = fs.createWriteStream(filePath);
   doc.pipe(stream);
 
-  doc.fontSize(22).fillColor("blue").text(`${title}`, { align: "center" });
+  doc.fontSize(20).fillColor("blue").text(title.toUpperCase(), { align: "center" });
   doc.moveDown(2);
 
-  const lines = catalogContent.split("\n");
+  const cleaned = cleanContent(content);
 
-  lines.forEach(line => {
-    if (line.startsWith("KATALOG")) {
-      doc.moveDown().fontSize(18).fillColor("black").text(line, { align: "center" });
+  cleaned.split("\n").forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
       doc.moveDown();
-    } else if (line.startsWith("Daftar Produk:")) {
-      doc.moveDown().fontSize(14).fillColor("black").text(line);
-      doc.moveDown(0.5);
-    } else if (line.match(/^ID Produk/)) {
-      doc.fontSize(12).fillColor("black").text(line, { continued: false });
-    } else if (line.match(/^\d+\./)) {
-      doc.moveDown().fontSize(13).fillColor("black").text(line);
+    } else if (/^\d+\. /.test(trimmed)) {
+      doc.fontSize(12).fillColor("black").text(trimmed, { indent: 20 });
+    } else if (trimmed.endsWith(":")) {
+      doc.moveDown(0.5).fontSize(14).fillColor("black").text(trimmed, { underline: true });
     } else {
-      doc.fontSize(11).fillColor("black").text(line);
+      doc.fontSize(11).fillColor("black").text(trimmed, { indent: 10 });
     }
   });
 
