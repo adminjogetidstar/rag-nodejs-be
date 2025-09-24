@@ -7,6 +7,7 @@ import { hashValue } from "../utils/encryption_util.js";
 import { PhoneModel } from "../models/index.js";
 import { fetchImageAsBase64 } from "../utils/images_helper.js";
 import { generateCatalogPdf } from "../utils/file_helper.js";
+import fs from "fs"
 
 dotenv.config();
 
@@ -28,7 +29,7 @@ async function sendWhatsapp(recipient, message, type = "text", filePath = null) 
 
   if (type === "file" && filePath) {
     form.append("type", "file");
-    form.append("file", require("fs").createReadStream(filePath));
+    form.append("file", fs.createReadStream(filePath));
     form.append("caption", message ?? "");
   } else {
     form.append("type", "text");
