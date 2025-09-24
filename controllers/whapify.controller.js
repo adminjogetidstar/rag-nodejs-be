@@ -7,7 +7,7 @@ import { hashValue } from "../utils/encryption_util.js";
 import { PhoneModel } from "../models/index.js";
 import { fetchImageAsBase64 } from "../utils/images_helper.js";
 import { generateCatalogPdf } from "../utils/file_helper.js";
-import fs from "fs"
+import fs from "fs";
 
 dotenv.config();
 
@@ -17,7 +17,12 @@ const ID = process.env.WHAPIFY_ACCOUNT_UNIQUE_ID;
 const BASE_URL = process.env.WHAPIFY_BASE_URL;
 const EXPIRED_DAYS = parseInt(process.env.EXPIRED_DAYS ?? "30", 10);
 
-async function sendWhatsapp(recipient, message, type = "text", filePath = null) {
+async function sendWhatsapp(
+  recipient,
+  message,
+  type = "text",
+  filePath = null
+) {
   const normalizedRecipient = recipient.startsWith("+")
     ? recipient.slice(1)
     : recipient;
@@ -27,10 +32,10 @@ async function sendWhatsapp(recipient, message, type = "text", filePath = null) 
   form.append("account", ID);
   form.append("recipient", normalizedRecipient);
 
-  if (type === "file" && filePath) {
-    form.append("type", "file");
-    form.append("file", fs.createReadStream(filePath));
-    form.append("caption", message ?? "");
+  if (type === "document" && filePath) {
+    form.append("type", "document");
+    form.append("document_file", fs.createReadStream(filePath));
+    form.append("message", message ?? "");
   } else {
     form.append("type", "text");
     form.append("message", message);
@@ -134,7 +139,8 @@ const webhookHandler = async (req, res) => {
     }
     const result = await askHandler(question, userId, images);
     const finalAnswer =
-      result?.answer ?? "Maaf, terjadi kesalahan saat memproses pertanyaan Anda.";
+      result?.answer ??
+      "Maaf, terjadi kesalahan saat memproses pertanyaan Anda.";
 
     // === Tentukan format jawaban ===
     const isPdfRequest = /pdf/i.test(question) || /katalog/i.test(question);
@@ -146,7 +152,7 @@ const webhookHandler = async (req, res) => {
         const response = await sendWhatsapp(
           userId,
           "Berikut katalog dalam format PDF:",
-          "file",
+          "document",
           pdfPath
         );
         return res.status(response.status).send(response.data);
@@ -172,7 +178,10 @@ const webhookHandler = async (req, res) => {
       const response = await sendWhatsapp(userId, finalAnswer);
       return res.status(response.status).send(response.data);
     } catch (err) {
-      console.error("Error sending answer message:", err?.response?.data ?? err.message);
+      console.error(
+        "Error sending answer message:",
+        err?.response?.data ?? err.message
+      );
       return res.status(500).send("Something went wrong");
     }
   } catch (err) {
