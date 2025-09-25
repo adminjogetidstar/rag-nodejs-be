@@ -1,5 +1,5 @@
 # Stage 1: Build image
-FROM node:20-slim AS build
+FROM node:20-buster AS build
 
 WORKDIR /app
 
@@ -18,7 +18,7 @@ RUN npm install
 COPY . .
 
 # Stage 2: Final image
-FROM node:20-slim
+FROM node:20-buster
 
 WORKDIR /app
 
