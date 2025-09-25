@@ -1,5 +1,7 @@
 stages:
-  - build_docker
+  - docker_build
+  - scan
+  - docker_push
   - deploy
 
 variables:
@@ -9,20 +11,66 @@ variables:
 before_script:
   - echo "🚀 Start CI/CD pipeline"
 
-# Stage 1: Build & Push Docker Image
+# Stage 1: Build Docker Image
 docker_build:
-  stage: build_docker
+  stage: docker_build
+  image: docker:24.0.5
+  services:
+    - name: docker:dind
+      command: ["--tls=false"]
+  script:
+    - docker build --pull --no-cache -t $IMAGE_NAME:latest .
+    - docker save -o docker-image.tar $IMAGE_NAME:latest
+  artifacts:
+    paths:
+      - docker-image.tar
+    expire_in: 1h
+  only:
+    - main
+
+# Stage 2: Scan File System
+scan_fs:
+  stage: scan
+  image:
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+  script:
+    - trivy fs --exit-code 1 --severity HIGH,CRITICAL .
+
+# Stage 2: Scan Docker Image
+scan_image:
+  stage: scan
+  needs:
+    - job: docker_build
+      artifacts: true
+  image: docker:24.0.5
+  services:
+    - docker:dind
+  before_script:
+    - apk add --no-cache curl
+    - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+    - mv ./bin/trivy /usr/local/bin/trivy
+  script:
+    - docker load -i docker-image.tar
+    - trivy image --exit-code 1 --severity HIGH,CRITICAL $IMAGE_NAME:latest
+
+# Stage 3: Push Docker Image to Docker Hub
+docker_push:
+  stage: docker_push
+  needs:
+    - job: docker_build
+      artifacts: true
   image: docker:24.0.5
   services:
     - docker:dind
   script:
     - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-    - docker build -t $IMAGE_NAME:latest .
+    - docker load -i docker-image.tar
     - docker push $IMAGE_NAME:latest
   only:
     - main
 
-# Stage 2: Deploy ke VPS dengan docker-compose
+# Stage 4: Deploy ke VPS dengan docker-compose
 deploy_vps:
   stage: deploy
   image: alpine:latest
