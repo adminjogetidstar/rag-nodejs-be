@@ -1,5 +1,5 @@
 # Stage 1: Build image
-FROM node:20-bookworm-slim AS build
+FROM node:22-bookworm AS build
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ RUN npm install
 COPY . .
 
 # Stage 2: Final image
-FROM node:20-bookworm-slim
+FROM node:22-bookworm AS final
 
 WORKDIR /app
 
