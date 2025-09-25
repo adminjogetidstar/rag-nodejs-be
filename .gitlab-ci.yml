@@ -18,12 +18,7 @@ docker_build:
   services:
     - docker:dind
   script:
-    - docker build --pull --no-cache -t $IMAGE_NAME:latest .
-    - docker save -o docker-image.tar $IMAGE_NAME:latest
-  artifacts:
-    paths:
-      - docker-image.tar
-    expire_in: 1h
+    - docker build -t $IMAGE_NAME:latest .
   only:
     - main
 
@@ -40,9 +35,7 @@ scan_fs:
 # Stage 2b: Scan Docker Image
 scan_image:
   stage: scan
-  needs:
-    - job: docker_build
-      artifacts: true
+  needs: [docker_build]
   image: docker:24.0.5
   services:
     - docker:dind
@@ -51,23 +44,17 @@ scan_image:
     - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
     - mv ./bin/trivy /usr/local/bin/trivy
   script:
-    - docker load -i docker-image.tar
     - trivy image --exit-code 1 --severity HIGH,CRITICAL $IMAGE_NAME:latest
 
 # Stage 3: Push Docker Image to Docker Hub
 docker_push:
   stage: docker_push
-  needs:
-    - job: docker_build
-      artifacts: true
-    - job: scan_fs
-    - job: scan_image
+  needs: [docker_build, scan_image]
   image: docker:24.0.5
   services:
     - docker:dind
   script:
     - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-    - docker load -i docker-image.tar
     - docker push $IMAGE_NAME:latest
   only:
     - main
