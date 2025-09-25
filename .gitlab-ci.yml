@@ -16,8 +16,7 @@ docker_build:
   stage: docker_build
   image: docker:24.0.5
   services:
-    - name: docker:dind
-      command: ["--tls=false"]
+    - docker:dind
   script:
     - docker build --pull --no-cache -t $IMAGE_NAME:latest .
     - docker save -o docker-image.tar $IMAGE_NAME:latest
@@ -28,7 +27,7 @@ docker_build:
   only:
     - main
 
-# Stage 2: Scan File System
+# Stage 2a: Scan File System
 scan_fs:
   stage: scan
   image:
@@ -36,8 +35,9 @@ scan_fs:
     entrypoint: [""]
   script:
     - trivy fs --exit-code 1 --severity HIGH,CRITICAL .
+  needs: []
 
-# Stage 2: Scan Docker Image
+# Stage 2b: Scan Docker Image
 scan_image:
   stage: scan
   needs:
@@ -60,6 +60,8 @@ docker_push:
   needs:
     - job: docker_build
       artifacts: true
+    - job: scan_fs
+    - job: scan_image
   image: docker:24.0.5
   services:
     - docker:dind
@@ -73,7 +75,7 @@ docker_push:
 # Stage 4: Deploy ke VPS dengan docker-compose
 deploy_vps:
   stage: deploy
-  image: alpine:3.19
+  image: alpine:latest
   before_script:
     - apk add --no-cache openssh-client
     - mkdir -p ~/.ssh
