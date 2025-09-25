@@ -1,10 +1,12 @@
 # Stage 1: Build image
-FROM node:22-bookworm-slim AS build
+FROM node:20-slim AS build
 
 WORKDIR /app
 
 # Install dependency build (karena Alpine minimalis)
-RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 # Salin file dependency dulu biar cache-nya efisien
 COPY package*.json ./
@@ -16,12 +18,13 @@ RUN npm install
 COPY . .
 
 # Stage 2: Final image
-FROM node:22-bookworm-slim
+FROM node:20-slim
 
 WORKDIR /app
 
-# Install runtime dependency (buat jalankan onnxruntime)
-RUN apt-get update && apt-get install -y python3 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y python3 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Salin hasil build dari tahap pertama
 COPY --from=build /app .
