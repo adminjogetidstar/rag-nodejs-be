@@ -44,6 +44,7 @@ scan_image:
     - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
     - mv ./bin/trivy /usr/local/bin/trivy
   script:
+    - cp .trivyignore /tmp/.trivyignore || true
     - trivy image --exit-code 1 --severity HIGH,CRITICAL $IMAGE_NAME:latest
 
 # Stage 3: Push Docker Image to Docker Hub
