@@ -1,32 +1,31 @@
 # Stage 1: Build image
-FROM node:20-buster AS build
+FROM node:20-bullseye-slim AS build
 
 WORKDIR /app
 
-# Install dependency build (karena Alpine minimalis)
+# Upgrade OS packages dan install build tools
 RUN apt-get update && apt-get upgrade -y \
-    && apt-get install -y python3 make g++ \
+    && apt-get install -y python3 make g++ curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Salin file dependency dulu biar cache-nya efisien
+# Copy package files dan install Node deps
 COPY package*.json ./
-
-# Hanya install production dependencies
 RUN npm install
 
-# Salin semua source code
+# Copy source code
 COPY . .
 
 # Stage 2: Final image
-FROM node:20-buster
+FROM node:20-bullseye-slim
 
 WORKDIR /app
 
+# Upgrade runtime packages
 RUN apt-get update && apt-get upgrade -y \
-    && apt-get install -y python3 \
+    && apt-get install -y python3 curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Salin hasil build dari tahap pertama
+# Salin hasil build
 COPY --from=build /app .
 
 EXPOSE 3000
