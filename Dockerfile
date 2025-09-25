@@ -1,34 +1,42 @@
 # Stage 1: Build image
-FROM node:20-bookworm-slim AS build
+FROM node:20-slim AS build
 
 WORKDIR /app
 
-# Install dependency build
-RUN apt-get update && apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends python3 make g++ && \
-    rm -rf /var/lib/apt/lists/*
+# Install dependency build (karena slim butuh tools tambahan)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 # Salin file dependency dulu biar cache lebih efisien
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --omit=dev
+# Install semua dependency (pakai ci biar deterministic)
+RUN npm ci
 
 # Salin semua source code
 COPY . .
 
-# Stage 2: Final runtime image
-FROM node:20-bookworm-slim
+# Jika ada build step (misalnya Typescript / transpile)
+# RUN npm run build
+
+
+# Stage 2: Final image (lebih kecil & aman)
+FROM node:20-slim
 
 WORKDIR /app
 
-# Install runtime dependency (onnxruntime butuh python)
-RUN apt-get update && apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends python3 && \
-    rm -rf /var/lib/apt/lists/*
+# Install runtime dependency saja
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy hasil build dari tahap pertama
-COPY --from=build /app .
+# Salin hanya file yang dibutuhkan (bukan semuanya)
+COPY --from=build /app /app
+
+# Jalankan sebagai user non-root (lebih aman)
+RUN useradd -m appuser
+USER appuser
 
 EXPOSE 3000
 

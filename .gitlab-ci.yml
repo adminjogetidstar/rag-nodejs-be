@@ -20,6 +20,11 @@ docker_build:
       command: ["--tls=false"]
   script:
     - docker build --pull --no-cache -t $IMAGE_NAME:latest .
+    - docker save -o docker-image.tar $IMAGE_NAME:latest
+  artifacts:
+    paths:
+      - docker-image.tar
+    expire_in: 1h
   only:
     - main
 
@@ -36,7 +41,8 @@ scan_fs:
 scan_image:
   stage: scan
   needs:
-    - docker_build
+    - job: docker_build
+      artifacts: true
   image: docker:24.0.5
   services:
     - docker:dind
@@ -45,18 +51,21 @@ scan_image:
     - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
     - mv ./bin/trivy /usr/local/bin/trivy
   script:
+    - docker load -i docker-image.tar
     - trivy image --exit-code 1 --severity HIGH,CRITICAL $IMAGE_NAME:latest
 
 # Stage 3: Push Docker Image to Docker Hub
 docker_push:
   stage: docker_push
   needs:
-    - docker_build
+    - job: docker_build
+      artifacts: true
   image: docker:24.0.5
   services:
     - docker:dind
   script:
     - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+    - docker load -i docker-image.tar
     - docker push $IMAGE_NAME:latest
   only:
     - main
@@ -64,7 +73,7 @@ docker_push:
 # Stage 4: Deploy ke VPS dengan docker-compose
 deploy_vps:
   stage: deploy
-  image: alpine:latest
+  image: alpine:3.19
   before_script:
     - apk add --no-cache openssh-client
     - mkdir -p ~/.ssh
