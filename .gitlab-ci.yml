@@ -30,7 +30,6 @@ scan_fs:
     entrypoint: [""]
   script:
     - trivy fs --exit-code 1 --severity HIGH,CRITICAL .
-  needs: []
 
 # Stage 2b: Scan Docker Image
 scan_image:
